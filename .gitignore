@@ -1,0 +1,41 @@
+# ==================== BUILD OUTPUT ====================
+build/
+out/
+*.class
+*.jar
+*.war
+*.ear
+
+# ==================== GRADLE ====================
+.gradle/
+gradle/wrapper/gradle-wrapper.jar
+gradle-app.setting
+!gradle/wrapper/gradle-wrapper.properties
+
+# ==================== IDE ====================
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.classpath
+.project
+.settings/
+
+# ==================== SPRING BOOT ====================
+application-local.properties
+application-local.yml
+*.env
+.env
+
+# ==================== LOGS ====================
+*.log
+logs/
+log/
+
+# ==================== OS ====================
+.DS_Store
+Thumbs.db
+
+# Ignore Kotlin plugin data
+.kotlin
