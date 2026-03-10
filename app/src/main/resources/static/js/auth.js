@@ -19,7 +19,7 @@ document.getElementById("registerForm")?.addEventListener("submit", async (e) =>
       // Store registered user info locally (as basic USER role)
       localStorage.setItem("currentUser", JSON.stringify({ username, role: "ROLE_USER" }));
       alert("Registration successful!");
-      window.location.href = "catalog.html"; // redirect to catalog
+      window.location.href = "login.html"; // redirect to login
     } else {
       alert(data.message);
     }
