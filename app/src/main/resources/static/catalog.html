@@ -7,6 +7,50 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css">
   <style>
+    @media (max-width: 1024px) {
+      #bookList { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (max-width: 640px) {
+      #bookList { grid-template-columns: repeat(2, 1fr); }
+    }
+    #bookList .book .category-badges {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 4px;
+      margin: 6px 0 10px;
+    }
+
+    .category-badge {
+      font-size: 0.68rem;
+      padding: 2px 8px;
+      border-radius: 20px;
+      background: var(--offwhite);
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    #bookList .book {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    #bookList .book .book-actions {
+      margin-top: auto;
+    }
+
+    #bookList {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1.25rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
     .book-actions--locked button {
       opacity: 0.45;
       pointer-events: auto;
