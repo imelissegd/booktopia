@@ -1,0 +1,184 @@
+const container    = document.getElementById("orders");
+const userDropdown = document.getElementById("userDropdown");
+
+let username = null;
+
+const currentUser = (() => {
+    try { return JSON.parse(localStorage.getItem("currentUser")); }
+    catch { return null; }
+})();
+
+const isAdmin = currentUser?.role === "ROLE_ADMIN";
+
+if (isAdmin) {
+    if (userDropdown) userDropdown.style.display = "";
+    populateUserDropdown("userDropdown");
+
+    userDropdown.addEventListener("change", () => {
+        username = userDropdown.value;
+        if (!username) {
+            showEmpty("Select a user to view their order history.");
+        } else {
+            fetchOrders();
+        }
+    });
+} else {
+    if (userDropdown) {
+        const selectWrap = userDropdown?.closest(".select-wrap");
+        if (selectWrap) selectWrap.style.display = "none";
+    }
+    username = currentUser?.username;
+    if (!username) {
+        showEmpty("Please log in to view your order history.");
+    } else {
+        fetchOrders();
+    }
+}
+
+// --- Fetch ---
+function fetchOrders() {
+    container.innerHTML = `<div class="table-loading">Loading orders…</div>`;
+    fetch(`http://localhost:8080/api/orders/${username}/history`)
+        .then(res => {
+            if (!res.ok) throw new Error("Failed to fetch orders");
+            return res.json();
+        })
+        .then(data => renderOrders(data))
+        .catch(err => {
+            console.error(err);
+            showEmpty("Error loading order history. Please try again.");
+        });
+}
+
+// --- Render ---
+function renderOrders(data) {
+    if (!data.length) {
+        showEmpty("No orders found.");
+        return;
+    }
+
+    container.innerHTML = "";
+
+    data.forEach(order => {
+        const rows = order.items.map(item => `
+      <tr>
+        <td class="td-title">${item.bookTitle}</td>
+        <td>${item.author || "—"}</td>
+        <td class="td-center">${item.quantity}</td>
+        <td class="td-price">₱${item.unitPrice}</td>
+        <td class="td-price td-bold">₱${item.totalPrice}</td>
+        <td class="td-actions">
+          <button class="tbl-btn tbl-btn--ghost" onclick="viewBookModal(${item.bookId})">View Book</button>
+        </td>
+      </tr>
+    `).join("");
+
+        const statusClass = {
+            PENDING:   "status--pending",
+            COMPLETED: "status--completed",
+            CANCELLED: "status--cancelled",
+        }[order.status] || "status--pending";
+
+        const orderCard = document.createElement("div");
+        orderCard.className = "order-card";
+        orderCard.innerHTML = `
+      <div class="order-card-header">
+        <div class="order-card-meta">
+          <span class="order-id">Order #${order.orderId}</span>
+          <span class="order-date">${new Date(order.orderDate).toLocaleDateString("en-PH", { year:"numeric", month:"long", day:"numeric" })}</span>
+        </div>
+        <span class="status-badge ${statusClass}">${order.status}</span>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Book Title</th>
+              <th>Author</th>
+              <th class="td-center">Qty</th>
+              <th>Unit Price</th>
+              <th>Total</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    `;
+        container.appendChild(orderCard);
+    });
+}
+
+// --- View Book Modal ---
+function viewBookModal(bookId) {
+    let modalContainer = document.getElementById("ordersModalContainer");
+    if (!modalContainer) {
+        modalContainer = document.createElement("div");
+        modalContainer.id = "ordersModalContainer";
+        document.body.appendChild(modalContainer);
+    }
+
+    modalContainer.innerHTML = `
+    <div class="modal-overlay" onclick="closeBookModal()">
+      <div class="modal modal--book" onclick="event.stopPropagation()">
+        <div class="modal-loading">Loading book details…</div>
+      </div>
+    </div>`;
+
+    fetch(`http://localhost:8080/api/books/${bookId}`)
+        .then(res => {
+            if (!res.ok) throw new Error("Book not found");
+            return res.json();
+        })
+        .then(book => {
+            const categoryBadges = (book.categories || [])
+                .map(cat => `<span class="category-badge">${formatCategory(cat)}</span>`)
+                .join("");
+
+            modalContainer.innerHTML = `
+        <div class="modal-overlay" onclick="closeBookModal()">
+          <div class="modal modal--book" onclick="event.stopPropagation()">
+            <button class="modal-close" onclick="closeBookModal()" title="Close">✕</button>
+            <div class="modal-book-layout">
+              <div class="modal-book-cover">
+                <img src="${book.image || './images/book-placeholder.svg'}" alt="${book.title}">
+              </div>
+              <div class="modal-book-info">
+                <h2 class="modal-book-title">${book.title}</h2>
+                <p class="modal-book-author">by ${book.author || 'Unknown Author'}</p>
+                <p class="modal-book-price">₱${book.price}</p>
+                ${categoryBadges ? `<div class="category-badges">${categoryBadges}</div>` : ""}
+                <p class="modal-book-desc">${book.description || 'No description available.'}</p>
+              </div>
+            </div>
+          </div>
+        </div>`;
+        })
+        .catch(err => {
+            console.error(err);
+            modalContainer.innerHTML = `
+        <div class="modal-overlay" onclick="closeBookModal()">
+          <div class="modal modal--book" onclick="event.stopPropagation()">
+            <button class="modal-close" onclick="closeBookModal()">✕</button>
+            <p>Could not load book details.</p>
+          </div>
+        </div>`;
+        });
+}
+
+function closeBookModal() {
+    const mc = document.getElementById("ordersModalContainer");
+    if (mc) mc.innerHTML = "";
+}
+
+function formatCategory(cat) {
+    return cat.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function showEmpty(msg) {
+    container.innerHTML = `
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <p>${msg}</p>
+    </div>`;
+}
