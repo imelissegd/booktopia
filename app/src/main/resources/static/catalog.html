@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book Catalog — Booktopia</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .catalog-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      max-width: 560px;
+      margin: 1.5rem auto 0.75rem;
+      padding: 0 20px;
+      flex-wrap: wrap;
+    }
+
+    /* Search input — mirrors .input-wrap from auth */
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 180px;
+    }
+
+    .search-wrap svg {
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 14px;
+      height: 14px;
+      stroke: var(--muted);
+      fill: none;
+      stroke-width: 1.8;
+      pointer-events: none;
+      transition: stroke 0.2s;
+    }
+
+    .search-wrap:focus-within svg {
+      stroke: var(--teal);
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 0.62rem 1rem 0.62rem 2.3rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      color: var(--charcoal);
+      background: var(--offwhite);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+
+    .search-input::placeholder { color: var(--muted); }
+
+    .search-input:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px var(--teal-glow);
+      background: var(--surface);
+    }
+
+    /* Category select — mirrors .select-field-wrap from page styles */
+    .category-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .category-wrap svg {
+      position: absolute;
+      right: 9px;
+      width: 13px;
+      height: 13px;
+      stroke: var(--muted);
+      fill: none;
+      pointer-events: none;
+    }
+
+    .category-select {
+      appearance: none;
+      padding: 0.62rem 2.2rem 0.62rem 0.9rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      color: var(--charcoal);
+      background: var(--offwhite);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .category-select:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px var(--teal-glow);
+    }
+
+    .results-count {
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body class="catalog-body">
+
+<div id="navbar"></div>
+
+<main class="catalog-main">
+  <h1>Browse Books</h1>
+
+  <div class="catalog-controls">
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input
+              type="text"
+              id="searchInput"
+              class="search-input"
+              placeholder="Search by title or author…"
+              oninput="applyFilters()"
+              autocomplete="off"
+      >
+    </div>
+    <div class="category-wrap">
+      <select id="categoryFilter" class="category-select" onchange="applyFilters()">
+        <option value="">All Categories</option>
+        <option value="FICTION">Fiction</option>
+        <option value="NON_FICTION">Non-Fiction</option>
+        <option value="SCIENCE">Science</option>
+        <option value="TECHNOLOGY">Technology</option>
+        <option value="HISTORY">History</option>
+        <option value="ROMANCE">Romance</option>
+        <option value="FANTASY">Fantasy</option>
+      </select>
+      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    </div>
+  </div>
+
+  <p id="resultsCount" class="results-count"></p>
+
+  <div id="bookList"></div>
+  <div id="pagination" class="pagination"></div>
+</main>
+
+<div id="modalContainer"></div>
+
+<script src="/js/navbar.js"></script>
+<script src="/js/catalog.js"></script>
+<script src="/js/create-book.js"></script>
+</body>
+</html>

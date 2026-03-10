@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up — Booktopia</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="auth-body">
+
+<div class="auth-card">
+  <div class="auth-brand">
+    <div class="logo">Book<span>topia</span></div>
+    <div class="tagline">Your modern bookshop</div>
+  </div>
+
+  <div class="auth-divider auth-divider--reverse"></div>
+
+  <h1>Sign Up</h1>
+
+  <form id="registerForm">
+    <div class="field-group">
+      <label for="regUsername">Username</label>
+      <div class="input-wrap">
+        <input id="regUsername" name="username" type="text" placeholder="your_username" required autocomplete="username">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label for="regEmail">Email</label>
+      <div class="input-wrap">
+        <input id="regEmail" name="email" type="email" placeholder="you@example.com" required autocomplete="email">
+        <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 7 10-7"/></svg>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label for="regPassword">Password</label>
+      <div class="input-wrap">
+        <input id="regPassword" name="password" type="password" placeholder="••••••••" required autocomplete="new-password" oninput="checkStrength(this.value)">
+        <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+    </div>
+
+    <button class="btn-primary" type="submit">Sign Up</button>
+  </form>
+
+  <p class="auth-footer">Already a member? <a href="login.html">Login</a></p>
+</div>
+
+<script src="js/auth.js"></script>
+</body>
+</html>
