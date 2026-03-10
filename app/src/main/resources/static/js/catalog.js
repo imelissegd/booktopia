@@ -90,8 +90,10 @@ function renderBooksPage(page) {
       <p>₱${book.price}</p>
       ${categoryBadges ? `<div class="category-badges">${categoryBadges}</div>` : ""}
       ${loggedInUser?.role === "ROLE_ADMIN" ? '' : `
-        <button onclick="openAddToCart(${book.id})">Add to Cart</button>
-        <button onclick="openCheckout(${book.id})">Buy Now</button>
+        <div class="book-actions ${!loggedInUser ? 'book-actions--locked' : ''}">
+          <button onclick="${loggedInUser ? `openAddToCart(${book.id})` : 'openLoginPrompt()'}">Add to Cart</button>
+          <button onclick="${loggedInUser ? `openCheckout(${book.id})` : 'openLoginPrompt()'}">Buy Now</button>
+        </div>
       `}
     `;
 
@@ -170,6 +172,19 @@ function openCheckout(bookId) {
         <input type="number" id="qty" value="1" min="1">
         <br>
         <button onclick="buyNow(${book.id})">Buy Now</button>
+        <button onclick="closeModal()">Cancel</button>
+      </div>
+    </div>
+  `;
+}
+
+function openLoginPrompt() {
+  document.getElementById("modalContainer").innerHTML = `
+    <div class="modal-overlay" onclick="closeModal()">
+      <div class="modal" onclick="event.stopPropagation()">
+        <h2>Login Required</h2>
+        <p>You need to be logged in to add items to your cart or make a purchase.</p>
+        <button onclick="window.location.href='login.html'">Go to Login</button>
         <button onclick="closeModal()">Cancel</button>
       </div>
     </div>
