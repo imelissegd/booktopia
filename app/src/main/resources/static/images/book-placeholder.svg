@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 150 150">
+  <!-- Background -->
+  <rect width="150" height="150" rx="10" fill="#f0f4f8"/>
+
+  <!-- Book shadow -->
+  <rect x="52" y="28" width="62" height="95" rx="4" fill="#b0bec5"/>
+
+  <!-- Book back cover -->
+  <rect x="38" y="25" width="62" height="95" rx="4" fill="#5c8dc9"/>
+
+  <!-- Book spine -->
+  <rect x="38" y="25" width="12" height="95" rx="4" fill="#3a6ba8"/>
+
+  <!-- Book pages (side) -->
+  <rect x="48" y="27" width="50" height="91" rx="2" fill="#fafafa"/>
+
+  <!-- Page lines -->
+  <line x1="58" y1="50" x2="90" y2="50" stroke="#ddd" stroke-width="2"/>
+  <line x1="58" y1="60" x2="90" y2="60" stroke="#ddd" stroke-width="2"/>
+  <line x1="58" y1="70" x2="90" y2="70" stroke="#ddd" stroke-width="2"/>
+  <line x1="58" y1="80" x2="90" y2="80" stroke="#ddd" stroke-width="2"/>
+  <line x1="58" y1="90" x2="90" y2="90" stroke="#ddd" stroke-width="2"/>
+  <line x1="58" y1="100" x2="80" y2="100" stroke="#ddd" stroke-width="2"/>
+
+  <!-- Book title block -->
+  <rect x="56" y="35" width="36" height="8" rx="2" fill="#5c8dc9" opacity="0.4"/>
+</svg>
