@@ -133,7 +133,10 @@ function setupPagination() {
     pagination.appendChild(btn);
   }
 }
-
+function updateModalTotal(unitPrice) {
+  const qty = parseInt(document.getElementById("qty").value) || 1;
+  document.getElementById("modalTotal").textContent = `₱${(unitPrice * qty).toFixed(2)}`;
+}
 // === Modals ===
 function viewBookModal(bookId) {
   const modalContainer = document.getElementById("modalContainer");
@@ -201,11 +204,14 @@ function openAddToCart(bookId) {
     <div class="modal-overlay" onclick="closeModal()">
       <div class="modal" onclick="event.stopPropagation()">
         <h2>Add to Cart</h2>
-        <img src="${book.image || './images/book-placeholder.svg'}" alt="${book.title}">
-        <h3>${book.title}</h3>
-        <p>${book.description || ''}</p>
+        <p class="modal-book-title">${book.title}</p>
+        <p class="modal-book-author">by ${book.author}</p>
+        <p class="modal-book-price">₱${book.price}</p>
         <label>Quantity</label>
-        <input type="number" id="qty" value="1" min="1">
+        <input type="number" id="qty" value="1" min="1"
+          oninput="updateModalTotal(${book.price})"
+        >
+        <p>Total: <strong id="modalTotal">₱${book.price}</strong></p>
         <br>
         <button onclick="addToCart(${book.id})">Add to Cart</button>
         <button onclick="closeModal()">Cancel</button>
@@ -224,11 +230,14 @@ function openCheckout(bookId) {
     <div class="modal-overlay" onclick="closeModal()">
       <div class="modal" onclick="event.stopPropagation()">
         <h2>Buy Now</h2>
-        <img src="${book.image || './images/book-placeholder.svg'}" alt="${book.title}">
-        <h3>${book.title}</h3>
-        <p>${book.description || ''}</p>
+        <p class="modal-book-title">${book.title}</p>
+        <p class="modal-book-author">by ${book.author || 'Unknown Author'}</p>
+        <p class="modal-book-price">₱${book.price}</p>
         <label>Quantity</label>
-        <input type="number" id="qty" value="1" min="1">
+        <input type="number" id="qty" value="1" min="1"
+          oninput="updateModalTotal(${book.price})"
+        >
+        <p>Total: <strong id="modalTotal">₱${book.price}</strong></p>
         <br>
         <button onclick="buyNow(${book.id})">Buy Now</button>
         <button onclick="closeModal()">Cancel</button>
