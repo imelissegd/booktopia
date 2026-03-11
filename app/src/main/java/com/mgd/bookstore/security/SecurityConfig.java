@@ -11,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.http.HttpMethod;
 
 @Configuration
 @EnableMethodSecurity
@@ -59,6 +60,11 @@ public class SecurityConfig {
                         .requestMatchers("/api/login", "/api/register", "/api/books", "/public/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/cart/**", "/api/orders/**").hasAnyRole("USER","ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/books").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/books/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/books").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/books/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/books/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .logout(logout -> logout
