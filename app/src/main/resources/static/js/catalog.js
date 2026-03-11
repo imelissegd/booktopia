@@ -91,15 +91,15 @@ function renderBooksPage(page) {
       <p>${book.author || ''}</p>
       <p>₱${book.price}</p>
       ${categoryBadges ? `<div class="category-badges">${categoryBadges}</div>` : ""}
-      ${loggedInUser?.role === "ROLE_ADMIN" ? '' : `
-        <div class="book-actions">
-          <button class="btn-view-book" onclick="openViewBook(${book.id})">View Book</button>
+      <div class="book-actions">
+        <button class="btn-view-book" onclick="openViewBook(${book.id})">View Book</button>
+        ${loggedInUser?.role !== "ROLE_ADMIN" ? `
           <div class="book-action-row">
             <button onclick="${loggedInUser ? `openAddToCart(${book.id})` : 'openLoginPrompt()'}">Add to Cart</button>
             <button onclick="${loggedInUser ? `openCheckout(${book.id})` : 'openLoginPrompt()'}">Buy Now</button>
           </div>
-        </div>
-      `}
+        ` : ''}
+      </div>
     `;
 
     bookList.appendChild(div);
