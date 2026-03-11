@@ -68,11 +68,13 @@ function renderCart() {
 
     const rows = cartItems.map(item => `
     <tr data-item-id="${item.cartItemId}">
+      ${!isAdmin ? `
       <td class="td-check">
         <input type="checkbox" class="table-checkbox selectItem" data-id="${item.cartItemId}">
-      </td>
+      </td>` : ``}
       <td class="td-title">${item.bookTitle}</td>
       <td class="td-center">
+        ${isAdmin ? `${item.quantity}` : `
         <div class="qty-control">
           <button class="qty-btn" onclick="changeQty(${item.cartItemId}, ${item.quantity - 1})" title="Decrease">−</button>
           <input
@@ -84,13 +86,13 @@ function renderCart() {
             onchange="changeQty(${item.cartItemId}, parseInt(this.value))"
           >
           <button class="qty-btn" onclick="changeQty(${item.cartItemId}, ${item.quantity + 1})" title="Increase">+</button>
-        </div>
+        </div>`}
       </td>
       <td class="td-price">₱${item.unitPrice}</td>
       <td class="td-price td-bold">₱${item.totalPrice}</td>
       <td class="td-actions">
         <button class="tbl-btn tbl-btn--ghost" onclick="openViewBook(${item.bookId})">View Book</button>
-        <button class="tbl-btn tbl-btn--danger" onclick="removeItem(${item.cartItemId})">Remove</button>
+        ${!isAdmin ? `<button class="tbl-btn tbl-btn--danger" onclick="removeItem(${item.cartItemId})">Remove</button>` : ``}
       </td>
     </tr>
   `).join("");
@@ -100,9 +102,10 @@ function renderCart() {
       <table class="data-table">
         <thead>
           <tr>
+            ${!isAdmin ? `
             <th class="td-check">
               <input type="checkbox" class="table-checkbox" id="selectAll" title="Select all">
-            </th>
+            </th>` : ``}
             <th>Book Title</th>
             <th class="td-center">Qty</th>
             <th>Unit Price</th>
@@ -115,9 +118,11 @@ function renderCart() {
     </div>
   `;
 
-    document.getElementById("selectAll").addEventListener("change", e => {
-        document.querySelectorAll(".selectItem").forEach(cb => cb.checked = e.target.checked);
-    });
+    if (!isAdmin) {
+        document.getElementById("selectAll").addEventListener("change", e => {
+            document.querySelectorAll(".selectItem").forEach(cb => cb.checked = e.target.checked);
+        });
+    }
 }
 
 // --- Quantity editing ---
