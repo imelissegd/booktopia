@@ -1,6 +1,258 @@
-<h1>Admin Dashboard</h1>
-<a href="catalog.html">View Catalog</a>
-<div id="userList"></div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard — Booktopia</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .dashboard-main {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2.5rem 24px 4rem;
+        }
+
+        .dashboard-header {
+            margin-bottom: 2.5rem;
+        }
+
+        .dashboard-header h1 {
+            font-family: 'DM Serif Display', serif;
+            font-size: 2rem;
+            font-weight: 400;
+            color: var(--charcoal);
+            letter-spacing: -0.02em;
+            margin: 0 0 0.3rem;
+        }
+
+        .dashboard-header p {
+            font-size: 0.88rem;
+            color: var(--muted);
+            margin: 0;
+        }
+
+        .dash-section {
+            margin-bottom: 2.2rem;
+        }
+
+        .dash-section-title {
+            font-size: 0.68rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin: 0 0 0.85rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1.5px solid var(--border);
+        }
+
+        .dash-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        @media (max-width: 768px) { .dash-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 480px) { .dash-grid { grid-template-columns: 1fr; } }
+
+        .dash-card {
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 1.3rem 1.4rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            position: relative;
+            transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+        }
+
+        .dash-card:hover {
+            border-color: var(--teal);
+            box-shadow: 0 4px 18px var(--teal-glow);
+            transform: translateY(-2px);
+        }
+
+        .dash-card:active { transform: translateY(0); }
+
+        .dash-card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 9px;
+            background: var(--offwhite);
+            border: 1.5px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .dash-card:hover .dash-card-icon {
+            background: rgba(0,137,123,0.08);
+            border-color: rgba(0,137,123,0.3);
+        }
+
+        .dash-card-icon svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--teal);
+            fill: none;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .dash-card-body {
+            display: flex;
+            flex-direction: column;
+            gap: 0.18rem;
+            padding-right: 1rem;
+        }
+
+        .dash-card-title {
+            font-size: 0.93rem;
+            font-weight: 600;
+            color: var(--charcoal);
+            margin: 0;
+        }
+
+        .dash-card-desc {
+            font-size: 0.78rem;
+            color: var(--muted);
+            margin: 0;
+            line-height: 1.45;
+        }
+
+        .dash-card-arrow {
+            position: absolute;
+            right: 1.1rem;
+            top: 50%;
+            transform: translateY(-50%) translateX(4px);
+            opacity: 0;
+            transition: opacity 0.2s, transform 0.2s;
+            color: var(--teal);
+        }
+
+        .dash-card:hover .dash-card-arrow {
+            opacity: 1;
+            transform: translateY(-50%) translateX(0);
+        }
+
+        .dash-card-arrow svg {
+            width: 15px;
+            height: 15px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+    </style>
+</head>
+<body class="page-body">
+
+<main class="dashboard-main">
+    <div class="dashboard-header">
+        <h1>Admin Dashboard</h1>
+        <p>Manage your bookstore — books, users, carts, and orders.</p>
+    </div>
+
+    <!-- Books -->
+    <div class="dash-section">
+        <p class="dash-section-title">Books</p>
+        <div class="dash-grid">
+
+            <a href="catalog.html" class="dash-card">
+                <div class="dash-card-icon">
+                    <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+                </div>
+                <div class="dash-card-body">
+                    <p class="dash-card-title">Manage Books</p>
+                    <p class="dash-card-desc">View, edit, and remove books from the catalog.</p>
+                </div>
+                <span class="dash-card-arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
+            </a>
+
+            <a href="#" class="dash-card" id="addBookBtn">
+                <div class="dash-card-icon">
+                    <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </div>
+                <div class="dash-card-body">
+                    <p class="dash-card-title">Add Book</p>
+                    <p class="dash-card-desc">Add a new book to the catalog.</p>
+                </div>
+                <span class="dash-card-arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
+            </a>
+
+        </div>
+    </div>
+
+    <!-- Users -->
+    <div class="dash-section">
+        <p class="dash-section-title">Users</p>
+        <div class="dash-grid">
+
+            <a href="#" class="dash-card" id="manageUsersBtn">
+                <div class="dash-card-icon">
+                    <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                </div>
+                <div class="dash-card-body">
+                    <p class="dash-card-title">Manage Users</p>
+                    <p class="dash-card-desc">View and update user information.</p>
+                </div>
+                <span class="dash-card-arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
+            </a>
+
+            <a href="#" class="dash-card" id="addUserBtn">
+                <div class="dash-card-icon">
+                    <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/></svg>
+                </div>
+                <div class="dash-card-body">
+                    <p class="dash-card-title">Add User</p>
+                    <p class="dash-card-desc">Create a new customer or admin account.</p>
+                </div>
+                <span class="dash-card-arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
+            </a>
+
+        </div>
+    </div>
+
+    <!-- Transactions -->
+    <div class="dash-section">
+        <p class="dash-section-title">Transactions</p>
+        <div class="dash-grid">
+
+            <a href="cart.html" class="dash-card" id="viewCartsBtn">
+                <div class="dash-card-icon">
+                    <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+                </div>
+                <div class="dash-card-body">
+                    <p class="dash-card-title">View Carts</p>
+                    <p class="dash-card-desc">Browse each customer's active shopping cart.</p>
+                </div>
+                <span class="dash-card-arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
+            </a>
+
+            <a href="orders.html" class="dash-card" id="viewOrdersBtn">
+                <div class="dash-card-icon">
+                    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                </div>
+                <div class="dash-card-body">
+                    <p class="dash-card-title">View Orders</p>
+                    <p class="dash-card-desc">Browse each customer's full order history.</p>
+                </div>
+                <span class="dash-card-arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
+            </a>
+
+        </div>
+    </div>
+</main>
+
+<script src="/js/navbar.js"></script>
 <script>
     async function loadUsers() {
         const token = localStorage.getItem("token");
@@ -8,7 +260,8 @@
             headers: { "Authorization": `Bearer ${token}` }
         });
         const users = await res.json();
-        document.getElementById("userList").innerHTML = users.map(u => `<p>${u.username} | ${u.email}</p>`).join('');
     }
     loadUsers();
 </script>
+</body>
+</html>
