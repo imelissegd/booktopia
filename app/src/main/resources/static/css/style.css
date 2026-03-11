@@ -1041,6 +1041,124 @@ body.page-body {
 .status--completed { background: rgba(46,125,82,0.12);  color: var(--success); }
 .status--cancelled { background: rgba(192,57,43,0.1);   color: var(--error); }
 
+.modal-book-actions {
+  margin-top: 1.2rem;
+  border-top: 1.5px solid var(--border);
+  padding-top: 1rem;
+}
+
+.modal-action-row {
+  display: flex;
+  gap: 8px;
+}
+
+.modal-expand {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.modal-expand-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.88rem;
+}
+
+.modal-expand-row label {
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.modal-expand-row input {
+  width: 70px;
+  padding: 4px 8px;
+  text-align: center;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.88rem;
+  outline: none;
+}
+
+.modal-expand-row input:focus {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px var(--teal-glow);
+}
+
+.modal-expand-row strong {
+  font-size: 1rem;
+  color: var(--teal);
+}
+
+.modal-btn-teal {
+  flex: 1;
+  padding: 8px 12px;
+  background: var(--teal);
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-weight: 600;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.modal-btn-teal:hover { background: var(--teal-dark); }
+
+.modal-btn-amber {
+  flex: 1;
+  padding: 8px 12px;
+  background: var(--amber);
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-weight: 600;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.modal-btn-amber:hover { background: var(--amber-dark); }
+
+.modal-btn-ghost {
+  flex: 1;
+  padding: 8px 12px;
+  background: transparent;
+  color: var(--charcoal);
+  border: 1.5px solid var(--border);
+  border-radius: 5px;
+  font-weight: 600;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+.modal-btn-ghost:hover { border-color: var(--teal); color: var(--teal); }
+
+.modal--success {
+  text-align: center;
+  padding: 2rem;
+}
+
+.success-icon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+  color: var(--success);
+}
+
+.modal--success h2 {
+  font-family: 'DM Serif Display', serif;
+  color: var(--charcoal);
+  margin-bottom: 0.5rem;
+}
+
+.modal--success p {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-bottom: 1.2rem;
+}
+
 /* Toast notification */
 .toast {
   position: fixed;

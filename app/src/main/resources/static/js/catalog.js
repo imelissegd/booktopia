@@ -4,6 +4,7 @@ const booksPerPage = 10;
 let currentPage = 1;
 let books = [];          // all books from API
 let filteredBooks = [];  // books after search + category filter
+let booksMap = {};       // books indexed by id for quick lookup
 let loggedInUser = null;
 
 // --- On page load ---
@@ -14,7 +15,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   })();
 
   await fetchBooks();
-  applyFilters(); // initial render with no filters
+  applyFilters();
 });
 
 // --- Fetch all books ---
@@ -48,7 +49,6 @@ function applyFilters() {
     return matchesSearch && matchesCategory;
   });
 
-  // Update results count
   const countEl = document.getElementById("resultsCount");
   if (query || category) {
     countEl.textContent = `${filteredBooks.length} result${filteredBooks.length !== 1 ? "s" : ""} found`;
@@ -76,6 +76,8 @@ function renderBooksPage(page) {
   const pageBooks = filteredBooks.slice(start, end);
 
   pageBooks.forEach(book => {
+    booksMap[book.id] = book; // cache for viewBookModal
+
     const div = document.createElement("div");
     div.className = "book";
 
@@ -91,7 +93,7 @@ function renderBooksPage(page) {
       ${categoryBadges ? `<div class="category-badges">${categoryBadges}</div>` : ""}
       ${loggedInUser?.role === "ROLE_ADMIN" ? '' : `
         <div class="book-actions">
-          <button class="btn-view-book" onclick="viewBookModal(${book.id})">View Book</button>
+          <button class="btn-view-book" onclick="openViewBook(${book.id})">View Book</button>
           <div class="book-action-row">
             <button onclick="${loggedInUser ? `openAddToCart(${book.id})` : 'openLoginPrompt()'}">Add to Cart</button>
             <button onclick="${loggedInUser ? `openCheckout(${book.id})` : 'openLoginPrompt()'}">Buy Now</button>
@@ -133,66 +135,25 @@ function setupPagination() {
     pagination.appendChild(btn);
   }
 }
+
+// --- Modals ---
+
+function openViewBook(bookId) {
+  viewBookModal(bookId, {
+    modalContainerId: "modalContainer",
+    closeFn: "closeModal",
+    loggedInUser
+  });
+}
+
+function closeModal() {
+  document.getElementById("modalContainer").innerHTML = "";
+}
+
 function updateModalTotal(unitPrice) {
   const qty = parseInt(document.getElementById("qty").value) || 1;
   document.getElementById("modalTotal").textContent = `₱${(unitPrice * qty).toFixed(2)}`;
 }
-// === Modals ===
-function viewBookModal(bookId) {
-  const modalContainer = document.getElementById("modalContainer");
-
-  modalContainer.innerHTML = `
-    <div class="modal-overlay" onclick="closeModal()">
-      <div class="modal" onclick="event.stopPropagation()">
-        <div class="modal-loading">Loading book details…</div>
-      </div>
-    </div>`;
-
-  fetch(`http://localhost:8080/api/books/${bookId}`)
-    .then(res => {
-      if (!res.ok) throw new Error("Book not found");
-      return res.json();
-    })
-    .then(book => {
-      const categoryBadges = (book.categories || [])
-        .map(cat => `<span class="category-badge">${formatCategory(cat)}</span>`)
-        .join("");
-
-      modalContainer.innerHTML = `
-        <div class="modal-overlay" onclick="closeModal()">
-          <div class="modal modal--book" onclick="event.stopPropagation()">
-            <button class="modal-close" onclick="closeModal()" title="Close">✕</button>
-            <div class="modal-book-layout">
-              <div class="modal-book-cover">
-                <img src="${book.image || './images/book-placeholder.svg'}" alt="${book.title}">
-              </div>
-              <div class="modal-book-info">
-                <h2 class="modal-book-title">${book.title}</h2>
-                <p class="modal-book-author">by ${book.author || 'Unknown Author'}</p>
-                <p class="modal-book-price">₱${book.price}</p>
-                ${categoryBadges ? `<div class="category-badges">${categoryBadges}</div>` : ""}
-                <p class="modal-book-desc">${book.description || 'No description available.'}</p>
-              </div>
-            </div>
-          </div>
-        </div>`;
-    })
-    .catch(() => {
-      modalContainer.innerHTML = `
-        <div class="modal-overlay" onclick="closeModal()">
-          <div class="modal" onclick="event.stopPropagation()">
-            <button class="modal-close" onclick="closeModal()">✕</button>
-            <p>Could not load book details.</p>
-          </div>
-        </div>`;
-    });
-}
-
-function closeBookModal() {
-  document.getElementById("modalContainer").innerHTML = "";
-}
-
-
 
 function openAddToCart(bookId) {
   if (loggedInUser?.role === "ROLE_ADMIN") return;
@@ -202,22 +163,20 @@ function openAddToCart(bookId) {
 
   document.getElementById("modalContainer").innerHTML = `
     <div class="modal-overlay" onclick="closeModal()">
-      <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal">
         <h2>Add to Cart</h2>
         <p class="modal-book-title">${book.title}</p>
-        <p class="modal-book-author">by ${book.author}</p>
+        <p class="modal-book-author">by ${book.author || 'Unknown Author'}</p>
         <p class="modal-book-price">₱${book.price}</p>
         <label>Quantity</label>
-        <input type="number" id="qty" value="1" min="1"
-          oninput="updateModalTotal(${book.price})"
-        >
+        <input type="number" id="qty" value="1" min="1" oninput="updateModalTotal(${book.price})">
         <p>Total: <strong id="modalTotal">₱${book.price}</strong></p>
         <br>
         <button onclick="addToCart(${book.id})">Add to Cart</button>
         <button onclick="closeModal()">Cancel</button>
       </div>
-    </div>
-  `;
+    </div>`;
+  document.querySelector("#modalContainer .modal").addEventListener("click", e => e.stopPropagation());
 }
 
 function openCheckout(bookId) {
@@ -228,39 +187,39 @@ function openCheckout(bookId) {
 
   document.getElementById("modalContainer").innerHTML = `
     <div class="modal-overlay" onclick="closeModal()">
-      <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal">
         <h2>Buy Now</h2>
         <p class="modal-book-title">${book.title}</p>
         <p class="modal-book-author">by ${book.author || 'Unknown Author'}</p>
         <p class="modal-book-price">₱${book.price}</p>
         <label>Quantity</label>
-        <input type="number" id="qty" value="1" min="1"
-          oninput="updateModalTotal(${book.price})"
-        >
+        <input type="number" id="qty" value="1" min="1" oninput="updateModalTotal(${book.price})">
         <p>Total: <strong id="modalTotal">₱${book.price}</strong></p>
         <br>
         <button onclick="buyNow(${book.id})">Buy Now</button>
         <button onclick="closeModal()">Cancel</button>
       </div>
-    </div>
-  `;
+    </div>`;
+  document.querySelector("#modalContainer .modal").addEventListener("click", e => e.stopPropagation());
 }
 
 function openLoginPrompt() {
   document.getElementById("modalContainer").innerHTML = `
     <div class="modal-overlay" onclick="closeModal()">
-      <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal">
+        <div class="modal-lock-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" width="32" height="32">
+            <rect x="3" y="11" width="18" height="11" rx="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+        </div>
         <h2>Login Required</h2>
         <p>You need to be logged in to add items to your cart or make a purchase.</p>
         <button onclick="window.location.href='login.html'">Go to Login</button>
-        <button onclick="closeModal()">Cancel</button>
+        <button onclick="closeModal()">Maybe Later</button>
       </div>
-    </div>
-  `;
-}
-
-function closeModal() {
-  document.getElementById("modalContainer").innerHTML = "";
+    </div>`;
+  document.querySelector("#modalContainer .modal").addEventListener("click", e => e.stopPropagation());
 }
 
 // --- User actions ---
@@ -273,7 +232,16 @@ function addToCart(bookId) {
     body: JSON.stringify({ bookId, quantity: qty })
   })
       .then(res => res.json())
-      .then(() => { alert("Added to cart!"); closeModal(); })
+      .then(() => {
+        showSuccessModal("modalContainer", {
+          title: "Added to Cart!",
+          message: "The book has been added to your cart successfully.",
+          primaryLabel: "Go to Cart",
+          primaryHref: "cart.html",
+          secondaryLabel: "Continue Shopping",
+          secondaryHref: "catalog.html"
+        });
+      })
       .catch(err => { console.error(err); alert("Error adding to cart"); });
 }
 
@@ -286,7 +254,17 @@ function buyNow(bookId) {
     body: JSON.stringify({ bookId, quantity: qty })
   })
       .then(res => res.json())
-      .then(order => { alert(`Order #${order.orderId} created!`); closeModal(); })
+      .then(order => {
+        const orderId = order?.orderId ?? order?.id;
+        showSuccessModal("modalContainer", {
+          title: "Order Placed!",
+          message: `Order #${orderId} has been placed successfully.`,
+          primaryLabel: "View Orders",
+          primaryHref: "orders.html",
+          secondaryLabel: "Continue Shopping",
+          secondaryHref: "catalog.html"
+        });
+      })
       .catch(err => { console.error(err); alert("Error during checkout"); });
 }
 

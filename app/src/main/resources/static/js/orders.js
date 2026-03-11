@@ -68,7 +68,7 @@ function renderOrders(data) {
         <td class="td-price">₱${item.unitPrice}</td>
         <td class="td-price td-bold">₱${item.totalPrice}</td>
         <td class="td-actions">
-          <button class="tbl-btn tbl-btn--ghost" onclick="viewBookModal(${item.bookId})">View Book</button>
+          <button class="tbl-btn tbl-btn--ghost" onclick="openViewBook(${item.bookId})">View Book</button>
         </td>
       </tr>
     `).join("");
@@ -110,67 +110,11 @@ function renderOrders(data) {
 }
 
 // --- View Book Modal ---
-function viewBookModal(bookId) {
-    let modalContainer = document.getElementById("ordersModalContainer");
-    if (!modalContainer) {
-        modalContainer = document.createElement("div");
-        modalContainer.id = "ordersModalContainer";
-        document.body.appendChild(modalContainer);
-    }
-
-    modalContainer.innerHTML = `
-    <div class="modal-overlay" onclick="closeBookModal()">
-      <div class="modal modal--book" onclick="event.stopPropagation()">
-        <div class="modal-loading">Loading book details…</div>
-      </div>
-    </div>`;
-
-    fetch(`http://localhost:8080/api/books/${bookId}`)
-        .then(res => {
-            if (!res.ok) throw new Error("Book not found");
-            return res.json();
-        })
-        .then(book => {
-            const categoryBadges = (book.categories || [])
-                .map(cat => `<span class="category-badge">${formatCategory(cat)}</span>`)
-                .join("");
-
-            modalContainer.innerHTML = `
-        <div class="modal-overlay" onclick="closeBookModal()">
-          <div class="modal modal--book" onclick="event.stopPropagation()">
-            <button class="modal-close" onclick="closeBookModal()" title="Close">✕</button>
-            <div class="modal-book-layout">
-              <div class="modal-book-cover">
-                <img src="${book.image || './images/book-placeholder.svg'}" alt="${book.title}">
-              </div>
-              <div class="modal-book-info">
-                <h2 class="modal-book-title">${book.title}</h2>
-                <p class="modal-book-author">by ${book.author || 'Unknown Author'}</p>
-                <p class="modal-book-price">₱${book.price}</p>
-                ${categoryBadges ? `<div class="category-badges">${categoryBadges}</div>` : ""}
-                <p class="modal-book-desc">${book.description || 'No description available.'}</p>
-              </div>
-            </div>
-          </div>
-        </div>`;
-        })
-        .catch(err => {
-            console.error(err);
-            modalContainer.innerHTML = `
-        <div class="modal-overlay" onclick="closeBookModal()">
-          <div class="modal modal--book" onclick="event.stopPropagation()">
-            <button class="modal-close" onclick="closeBookModal()">✕</button>
-            <p>Could not load book details.</p>
-          </div>
-        </div>`;
-        });
+function openViewBook(bookId) {
+    viewBookModal(bookId, {
+        modalContainerId: "ordersModalContainer", closeFn: "closeOrdersModal", loggedInUser: currentUser });
 }
-
-function closeBookModal() {
-    const mc = document.getElementById("ordersModalContainer");
-    if (mc) mc.innerHTML = "";
-}
-
+function closeOrdersModal() { document.getElementById("ordersModalContainer").innerHTML = ""; }
 function formatCategory(cat) {
     return cat.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
 }

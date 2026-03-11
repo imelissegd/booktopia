@@ -89,7 +89,7 @@ function renderCart() {
       <td class="td-price">₱${item.unitPrice}</td>
       <td class="td-price td-bold">₱${item.totalPrice}</td>
       <td class="td-actions">
-        <button class="tbl-btn tbl-btn--ghost" onclick="viewBookModal(${item.bookId})">View Book</button>
+        <button class="tbl-btn tbl-btn--ghost" onclick="openViewBook(${item.bookId})">View Book</button>
         <button class="tbl-btn tbl-btn--danger" onclick="removeItem(${item.cartItemId})">Remove</button>
       </td>
     </tr>
@@ -188,8 +188,15 @@ checkoutBtn.addEventListener("click", () => {
             return res.json();
         })
         .then(data => {
-            showToast(`Order #${data.orderId} placed successfully!`, "success");
-            fetchCart();
+            const orderId = data?.orderId ?? data?.id;
+            showSuccessModal("cartModalContainer", {
+                title: "Order Placed!",
+                message: `Order #${orderId} has been placed successfully.`,
+                primaryLabel: "View Orders",
+                primaryHref: "orders.html",
+                secondaryLabel: "Back to Cart",
+                secondaryHref: "cart.html"
+            });
         })
         .catch(err => {
             console.error(err);
@@ -198,12 +205,11 @@ checkoutBtn.addEventListener("click", () => {
         .finally(() => {
             checkoutBtn.disabled = false;
             checkoutBtn.innerHTML = `
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/></svg>
-        Checkout Selected
-      `;
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/></svg>
+                Checkout
+            `;
         });
 });
-
 // --- Remove item ---
 function removeItem(cartItemId) {
     if (!confirm("Remove this item from your cart?")) return;
@@ -225,67 +231,15 @@ function removeItem(cartItemId) {
 }
 
 // --- View book modal (same style as catalog) ---
-function viewBookModal(bookId) {
-    // Show loading modal immediately
-    let modalContainer = document.getElementById("cartModalContainer");
-    if (!modalContainer) {
-        modalContainer = document.createElement("div");
-        modalContainer.id = "cartModalContainer";
-        document.body.appendChild(modalContainer);
-    }
-
-    modalContainer.innerHTML = `
-    <div class="modal-overlay" onclick="closeCartModal()">
-      <div class="modal" onclick="event.stopPropagation()">
-        <div class="modal-loading">Loading book details…</div>
-      </div>
-    </div>`;
-
-    fetch(`http://localhost:8080/api/books/${bookId}`)
-        .then(res => {
-            if (!res.ok) throw new Error("Book not found");
-            return res.json();
-        })
-        .then(book => {
-            const categoryBadges = (book.categories || [])
-                .map(cat => `<span class="category-badge">${formatCategory(cat)}</span>`)
-                .join("");
-
-            modalContainer.innerHTML = `
-        <div class="modal-overlay" onclick="closeCartModal()">
-          <div class="modal modal--book" onclick="event.stopPropagation()">
-            <button class="modal-close" onclick="closeCartModal()" title="Close">✕</button>
-            <div class="modal-book-layout">
-              <div class="modal-book-cover">
-                <img src="${book.image || './images/book-placeholder.svg'}" alt="${book.title}">
-              </div>
-              <div class="modal-book-info">
-                <h2 class="modal-book-title">${book.title}</h2>
-                <p class="modal-book-author">by ${book.author || 'Unknown Author'}</p>
-                <p class="modal-book-price">₱${book.price}</p>
-                ${categoryBadges ? `<div class="category-badges">${categoryBadges}</div>` : ""}
-                <p class="modal-book-desc">${book.description || 'No description available.'}</p>
-              </div>
-            </div>
-          </div>
-        </div>`;
-        })
-        .catch(err => {
-            console.error(err);
-            modalContainer.innerHTML = `
-        <div class="modal-overlay" onclick="closeCartModal()">
-          <div class="modal" onclick="event.stopPropagation()">
-            <button class="modal-close" onclick="closeCartModal()">✕</button>
-            <p>Could not load book details.</p>
-          </div>
-        </div>`;
-        });
+function openViewBook(bookId) {
+    viewBookModal(bookId, {
+        modalContainerId: "cartModalContainer",
+        closeFn: "closeCartModal",
+        loggedInUser: currentUser,
+        hidePurchase: true  // if inside cart no need to show add to cart and buy now
+    });
 }
-
-function closeCartModal() {
-    const mc = document.getElementById("cartModalContainer");
-    if (mc) mc.innerHTML = "";
-}
+function closeCartModal() { document.getElementById("cartModalContainer").innerHTML = ""; }
 
 // Reused from catalog
 function formatCategory(cat) {
