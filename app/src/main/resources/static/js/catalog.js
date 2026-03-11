@@ -90,9 +90,12 @@ function renderBooksPage(page) {
       <p>₱${book.price}</p>
       ${categoryBadges ? `<div class="category-badges">${categoryBadges}</div>` : ""}
       ${loggedInUser?.role === "ROLE_ADMIN" ? '' : `
-        <div class="book-actions ${!loggedInUser ? 'book-actions--locked' : ''}">
-          <button onclick="${loggedInUser ? `openAddToCart(${book.id})` : 'openLoginPrompt()'}">Add to Cart</button>
-          <button onclick="${loggedInUser ? `openCheckout(${book.id})` : 'openLoginPrompt()'}">Buy Now</button>
+        <div class="book-actions">
+          <button class="btn-view-book" onclick="viewBookModal(${book.id})">View Book</button>
+          <div class="book-action-row">
+            <button onclick="${loggedInUser ? `openAddToCart(${book.id})` : 'openLoginPrompt()'}">Add to Cart</button>
+            <button onclick="${loggedInUser ? `openCheckout(${book.id})` : 'openLoginPrompt()'}">Buy Now</button>
+          </div>
         </div>
       `}
     `;
@@ -132,6 +135,62 @@ function setupPagination() {
 }
 
 // === Modals ===
+function viewBookModal(bookId) {
+  const modalContainer = document.getElementById("modalContainer");
+
+  modalContainer.innerHTML = `
+    <div class="modal-overlay" onclick="closeModal()">
+      <div class="modal" onclick="event.stopPropagation()">
+        <div class="modal-loading">Loading book details…</div>
+      </div>
+    </div>`;
+
+  fetch(`http://localhost:8080/api/books/${bookId}`)
+    .then(res => {
+      if (!res.ok) throw new Error("Book not found");
+      return res.json();
+    })
+    .then(book => {
+      const categoryBadges = (book.categories || [])
+        .map(cat => `<span class="category-badge">${formatCategory(cat)}</span>`)
+        .join("");
+
+      modalContainer.innerHTML = `
+        <div class="modal-overlay" onclick="closeModal()">
+          <div class="modal modal--book" onclick="event.stopPropagation()">
+            <button class="modal-close" onclick="closeModal()" title="Close">✕</button>
+            <div class="modal-book-layout">
+              <div class="modal-book-cover">
+                <img src="${book.image || './images/book-placeholder.svg'}" alt="${book.title}">
+              </div>
+              <div class="modal-book-info">
+                <h2 class="modal-book-title">${book.title}</h2>
+                <p class="modal-book-author">by ${book.author || 'Unknown Author'}</p>
+                <p class="modal-book-price">₱${book.price}</p>
+                ${categoryBadges ? `<div class="category-badges">${categoryBadges}</div>` : ""}
+                <p class="modal-book-desc">${book.description || 'No description available.'}</p>
+              </div>
+            </div>
+          </div>
+        </div>`;
+    })
+    .catch(() => {
+      modalContainer.innerHTML = `
+        <div class="modal-overlay" onclick="closeModal()">
+          <div class="modal" onclick="event.stopPropagation()">
+            <button class="modal-close" onclick="closeModal()">✕</button>
+            <p>Could not load book details.</p>
+          </div>
+        </div>`;
+    });
+}
+
+function closeBookModal() {
+  document.getElementById("modalContainer").innerHTML = "";
+}
+
+
+
 function openAddToCart(bookId) {
   if (loggedInUser?.role === "ROLE_ADMIN") return;
 
