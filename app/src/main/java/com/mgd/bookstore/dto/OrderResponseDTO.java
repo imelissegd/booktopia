@@ -7,6 +7,7 @@ import java.util.List;
 
 public class OrderResponseDTO {
     private Long orderId;
+    private String transactionId;
     private String username;
     private LocalDateTime orderDate;
     private OrderStatus status;
@@ -16,6 +17,9 @@ public class OrderResponseDTO {
     // getters & setters
     public Long getOrderId() { return orderId; }
     public void setOrderId(Long orderId) { this.orderId = orderId; }
+
+    public String getTransactionId() { return transactionId; }
+    public void setTransactionId(String transactionId) { this.transactionId = transactionId; }
 
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }

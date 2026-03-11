@@ -25,6 +25,9 @@ public class Order {
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
+    @Column(nullable = false, unique = true, length = 6)
+    private String transactionId;
+
     // Getters and Setters
     public Long getId() {
         return id;
@@ -64,5 +67,13 @@ public class Order {
 
     public void setStatus(OrderStatus status) {
         this.status = status;
+    }
+
+    public String getTransactionId() {
+        return transactionId;
+    }
+
+    public void setTransactionId(String transactionId) {
+        this.transactionId = transactionId;
     }
 }

@@ -84,10 +84,10 @@ function renderOrders(data) {
         orderCard.innerHTML = `
       <div class="order-card-header">
         <div class="order-card-meta">
-          <span class="order-id">Order #${order.orderId}</span>
+          <span class="order-id">Order ${order.transactionId}</span>
           <span class="order-date">${new Date(order.orderDate).toLocaleDateString("en-PH", { year:"numeric", month:"long", day:"numeric" })}</span>
         </div>
-        <span class="status-badge ${statusClass}">${order.status}</span>
+        ${isAdmin ? `<span class="status-badge ${statusClass}">${order.status}</span>` : ``}
       </div>
       <div class="table-wrap">
         <table class="data-table">

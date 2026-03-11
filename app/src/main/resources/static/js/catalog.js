@@ -255,10 +255,10 @@ function buyNow(bookId) {
   })
       .then(res => res.json())
       .then(order => {
-        const orderId = order?.orderId ?? order?.id;
+        const txnId = order?.transactionId ?? "";
         showSuccessModal("modalContainer", {
           title: "Order Placed!",
-          message: `Order #${orderId} has been placed successfully.`,
+          message: `Order ${txnId} has been placed successfully.`,
           primaryLabel: "View Orders",
           primaryHref: "orders.html",
           secondaryLabel: "Continue Shopping",

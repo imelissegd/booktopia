@@ -10,9 +10,22 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Random;
 
 @Service
 public class OrderService {
+
+    private static final String TX_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    private static final int TX_LENGTH = 6;
+    private final Random random = new Random();
+
+    private String generateTransactionId() {
+        StringBuilder sb = new StringBuilder(TX_LENGTH);
+        for (int i = 0; i < TX_LENGTH; i++) {
+            sb.append(TX_CHARS.charAt(random.nextInt(TX_CHARS.length())));
+        }
+        return sb.toString();
+    }
 
     private final OrderRepository orderRepository;
     private final CartRepository cartRepository;
@@ -29,6 +42,7 @@ public class OrderService {
     public OrderResponseDTO mapOrderToDTO(Order order) {
         OrderResponseDTO dto = new OrderResponseDTO();
         dto.setOrderId(order.getId());
+        dto.setTransactionId(order.getTransactionId());
         dto.setUsername(order.getUser().getUsername());
         dto.setOrderDate(order.getOrderDate());
         dto.setStatus(order.getStatus());
@@ -83,6 +97,7 @@ public class OrderService {
         order.setUser(user);
         order.setOrderDate(LocalDateTime.now());
         order.setStatus(OrderStatus.PENDING);
+        order.setTransactionId(generateTransactionId());
 
         List<OrderItem> orderItems = itemsToCheckout.stream().map(cartItem -> {
             OrderItem orderItem = new OrderItem();
@@ -113,6 +128,7 @@ public class OrderService {
         order.setUser(user);
         order.setOrderDate(LocalDateTime.now());
         order.setStatus(OrderStatus.PENDING);
+        order.setTransactionId(generateTransactionId());
 
         OrderItem orderItem = new OrderItem();
         orderItem.setBook(book);

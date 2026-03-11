@@ -194,9 +194,10 @@ checkoutBtn.addEventListener("click", () => {
         })
         .then(data => {
             const orderId = data?.orderId ?? data?.id;
+            const txnId   = data?.transactionId ?? "";
             showSuccessModal("cartModalContainer", {
                 title: "Order Placed!",
-                message: `Order #${orderId} has been placed successfully.`,
+                message: `Order ${txnId} has been placed successfully.`,
                 primaryLabel: "View Orders",
                 primaryHref: "orders.html",
                 secondaryLabel: "Back to Cart",

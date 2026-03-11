@@ -156,7 +156,7 @@ function confirmAddToCart(bookId) {
         catch { return null; }
     })();
 
-    const { closeFn, onSuccessCart, modalContainerId } = window._modalCallbacks || {};
+    const { onSuccessCart, modalContainerId } = window._modalCallbacks || {};
 
     fetch(`http://localhost:8080/api/cart/${loggedInUser.username}/add`, {
         method: "POST",
@@ -169,7 +169,6 @@ function confirmAddToCart(bookId) {
             if (typeof onSuccessCart === "function") {
                 onSuccessCart();
             } else {
-                // Default: show success modal with navigation options
                 showSuccessModal(modalContainerId, {
                     title: "Added to Cart!",
                     message: "The book has been added to your cart successfully.",
@@ -190,7 +189,7 @@ function confirmBuyNow(bookId) {
         catch { return null; }
     })();
 
-    const { closeFn, onSuccessBuy, modalContainerId } = window._modalCallbacks || {};
+    const { onSuccessBuy, modalContainerId } = window._modalCallbacks || {};
 
     fetch(`http://localhost:8080/api/orders/${loggedInUser.username}/buy-now`, {
         method: "POST",
@@ -200,14 +199,13 @@ function confirmBuyNow(bookId) {
     })
         .then(res => res.json())
         .then(order => {
-            const orderId = order?.orderId ?? order?.id;
+            const txnId = order?.transactionId ?? "";
             if (typeof onSuccessBuy === "function") {
                 onSuccessBuy();
             } else {
-                // Default: show success modal with navigation options
                 showSuccessModal(modalContainerId, {
                     title: "Order Placed!",
-                    message: `Order #${orderId} has been placed successfully.`,
+                    message: `Order ${txnId} has been placed successfully.`,
                     primaryLabel: "View Orders",
                     primaryHref: "orders.html",
                     secondaryLabel: "Continue Shopping",
