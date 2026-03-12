@@ -51,6 +51,8 @@ class BookControllerTest {
         techBook.setPrice(new BigDecimal("39.99"));
         techBook.setDescription("Agile software craftsmanship");
         techBook.setCategories(List.of(Category.TECHNOLOGY));
+        techBook.setActive(true);
+        techBook.setStock(10);
 
         fantasyBook = new Book();
         fantasyBook.setId(2L);
@@ -59,14 +61,16 @@ class BookControllerTest {
         fantasyBook.setPrice(new BigDecimal("14.99"));
         fantasyBook.setDescription("A fantasy adventure");
         fantasyBook.setCategories(List.of(Category.FANTASY));
+        fantasyBook.setActive(true);
+        fantasyBook.setStock(5);
     }
 
     // -----------------------------------------------------------------------
-    // GET /api/books
+    // GET /api/books - active books only
     // -----------------------------------------------------------------------
 
     @Test
-    @DisplayName("GET /api/books - returns 200 with all books")
+    @DisplayName("GET /api/books - returns 200 with all active books")
     void getAllBooks_returns200_withAllBooks() throws Exception {
         when(bookService.getAllBooks()).thenReturn(List.of(techBook, fantasyBook));
 
@@ -78,13 +82,32 @@ class BookControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/books - returns empty array when no books")
+    @DisplayName("GET /api/books - returns empty array when no active books")
     void getAllBooks_returnsEmptyArray_whenNoBooks() throws Exception {
         when(bookService.getAllBooks()).thenReturn(List.of());
 
         mockMvc.perform(get("/api/books"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    // -----------------------------------------------------------------------
+    // GET /api/books/admin/all
+    // -----------------------------------------------------------------------
+
+    @Test
+    @DisplayName("GET /api/books/admin/all - returns all books including inactive")
+    void getAllBooksAdmin_returnsAllBooks() throws Exception {
+        Book inactiveBook = new Book();
+        inactiveBook.setId(3L);
+        inactiveBook.setTitle("Delisted");
+        inactiveBook.setActive(false);
+
+        when(bookService.getAllBooksAdmin()).thenReturn(List.of(techBook, inactiveBook));
+
+        mockMvc.perform(get("/api/books/admin/all"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2));
     }
 
     // -----------------------------------------------------------------------
@@ -188,5 +211,114 @@ class BookControllerTest {
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.title").value("Clean Code"))
                 .andExpect(jsonPath("$.author").value("Robert Martin"));
+    }
+
+    // -----------------------------------------------------------------------
+    // PUT /api/books/{id}
+    // -----------------------------------------------------------------------
+
+    @Test
+    @DisplayName("PUT /api/books/{id} - returns 200 with updated book")
+    void updateBook_returns200_withUpdatedBook() throws Exception {
+        Book updated = new Book();
+        updated.setTitle("Clean Architecture");
+        updated.setAuthor("Robert Martin");
+        updated.setPrice(new BigDecimal("44.99"));
+        updated.setStock(5);
+
+        when(bookService.updateBook(eq(1L), any(Book.class))).thenReturn(Optional.of(updated));
+
+        mockMvc.perform(put("/api/books/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updated)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Clean Architecture"))
+                .andExpect(jsonPath("$.price").value(44.99));
+    }
+
+    @Test
+    @DisplayName("PUT /api/books/{id} - returns 404 when book not found")
+    void updateBook_returns404_whenNotFound() throws Exception {
+        when(bookService.updateBook(eq(99L), any(Book.class))).thenReturn(Optional.empty());
+
+        mockMvc.perform(put("/api/books/99")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(techBook)))
+                .andExpect(status().isNotFound());
+    }
+
+    // -----------------------------------------------------------------------
+    // DELETE /api/books/{id}
+    // -----------------------------------------------------------------------
+
+    @Test
+    @DisplayName("DELETE /api/books/{id} - returns 204 when book deleted")
+    void deleteBook_returns204_whenDeleted() throws Exception {
+        when(bookService.getBookById(1L)).thenReturn(Optional.of(techBook));
+        doNothing().when(bookService).deleteBook(1L);
+
+        mockMvc.perform(delete("/api/books/1"))
+                .andExpect(status().isNoContent());
+
+        verify(bookService).deleteBook(1L);
+    }
+
+    @Test
+    @DisplayName("DELETE /api/books/{id} - returns 404 when book not found")
+    void deleteBook_returns404_whenNotFound() throws Exception {
+        when(bookService.getBookById(99L)).thenReturn(Optional.empty());
+
+        mockMvc.perform(delete("/api/books/99"))
+                .andExpect(status().isNotFound());
+
+        verify(bookService, never()).deleteBook(anyLong());
+    }
+
+    // -----------------------------------------------------------------------
+    // PATCH /api/books/{id}/delist
+    // -----------------------------------------------------------------------
+
+    @Test
+    @DisplayName("PATCH /api/books/{id}/delist - returns 200 with delisted book")
+    void delistBook_returns200_withDelistedBook() throws Exception {
+        techBook.setActive(false);
+        when(bookService.delistBook(1L)).thenReturn(Optional.of(techBook));
+
+        mockMvc.perform(patch("/api/books/1/delist"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.active").value(false));
+    }
+
+    @Test
+    @DisplayName("PATCH /api/books/{id}/delist - returns 404 when book not found")
+    void delistBook_returns404_whenNotFound() throws Exception {
+        when(bookService.delistBook(99L)).thenReturn(Optional.empty());
+
+        mockMvc.perform(patch("/api/books/99/delist"))
+                .andExpect(status().isNotFound());
+    }
+
+    // -----------------------------------------------------------------------
+    // PATCH /api/books/{id}/relist
+    // -----------------------------------------------------------------------
+
+    @Test
+    @DisplayName("PATCH /api/books/{id}/relist - returns 200 with relisted book")
+    void relistBook_returns200_withRelistedBook() throws Exception {
+        techBook.setActive(true);
+        when(bookService.relistBook(1L)).thenReturn(Optional.of(techBook));
+
+        mockMvc.perform(patch("/api/books/1/relist"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.active").value(true));
+    }
+
+    @Test
+    @DisplayName("PATCH /api/books/{id}/relist - returns 404 when book not found")
+    void relistBook_returns404_whenNotFound() throws Exception {
+        when(bookService.relistBook(99L)).thenReturn(Optional.empty());
+
+        mockMvc.perform(patch("/api/books/99/relist"))
+                .andExpect(status().isNotFound());
     }
 }

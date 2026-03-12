@@ -18,9 +18,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -51,12 +52,15 @@ class UserControllerTest {
         user.setEmail("john@example.com");
         user.setPassword("secret");
         user.setRole(Role.ROLE_USER);
+        user.setEnabled(true);
         user.setOrders(new ArrayList<>());
 
         userDTO = new UserDTO();
         userDTO.setId(1L);
         userDTO.setUsername("john_doe");
         userDTO.setEmail("john@example.com");
+        userDTO.setRole("ROLE_USER");
+        userDTO.setEnabled(true);
         userDTO.setOrders(List.of());
         userDTO.setCart(null);
     }
@@ -79,6 +83,22 @@ class UserControllerTest {
     }
 
     // -----------------------------------------------------------------------
+    // POST /api/users (createUser - admin)
+    // -----------------------------------------------------------------------
+
+    @Test
+    @DisplayName("POST /api/users - returns 200 with created user")
+    void createUser_returns200_withCreatedUser() throws Exception {
+        when(userService.createUser(any(User.class))).thenReturn(user);
+
+        mockMvc.perform(post("/api/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(user)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("john_doe"));
+    }
+
+    // -----------------------------------------------------------------------
     // GET /api/users/{username}
     // -----------------------------------------------------------------------
 
@@ -92,7 +112,8 @@ class UserControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.username").value("john_doe"))
-                .andExpect(jsonPath("$.email").value("john@example.com"));
+                .andExpect(jsonPath("$.email").value("john@example.com"))
+                .andExpect(jsonPath("$.role").value("ROLE_USER"));
     }
 
     @Test
@@ -101,6 +122,31 @@ class UserControllerTest {
         when(userService.findByUsername("ghost")).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/api/users/ghost"))
+                .andExpect(status().isNotFound());
+    }
+
+    // -----------------------------------------------------------------------
+    // GET /api/users/id/{id}
+    // -----------------------------------------------------------------------
+
+    @Test
+    @DisplayName("GET /api/users/id/{id} - returns 200 with user DTO")
+    void getUserById_returns200_withUserDTO() throws Exception {
+        when(userService.getUserById(1L)).thenReturn(Optional.of(user));
+        when(userService.mapToDTO(user)).thenReturn(userDTO);
+
+        mockMvc.perform(get("/api/users/id/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.username").value("john_doe"));
+    }
+
+    @Test
+    @DisplayName("GET /api/users/id/{id} - returns 404 when user not found")
+    void getUserById_returns404_whenNotFound() throws Exception {
+        when(userService.getUserById(99L)).thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/api/users/id/99"))
                 .andExpect(status().isNotFound());
     }
 
@@ -116,12 +162,14 @@ class UserControllerTest {
         admin.setUsername("admin");
         admin.setEmail("admin@example.com");
         admin.setRole(Role.ROLE_ADMIN);
+        admin.setEnabled(true);
         admin.setOrders(new ArrayList<>());
 
         UserDTO adminDTO = new UserDTO();
         adminDTO.setId(2L);
         adminDTO.setUsername("admin");
         adminDTO.setEmail("admin@example.com");
+        adminDTO.setRole("ROLE_ADMIN");
 
         when(userService.getAllUsers()).thenReturn(List.of(user, admin));
         when(userService.mapToDTO(user)).thenReturn(userDTO);
@@ -142,5 +190,147 @@ class UserControllerTest {
         mockMvc.perform(get("/api/users"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    @DisplayName("GET /api/users?search= - returns filtered users matching search query")
+    void getAllUsers_withSearch_returnsFilteredUsers() throws Exception {
+        when(userService.searchUsers("john")).thenReturn(List.of(user));
+        when(userService.mapToDTO(user)).thenReturn(userDTO);
+
+        mockMvc.perform(get("/api/users").param("search", "john"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].username").value("john_doe"));
+    }
+
+    // -----------------------------------------------------------------------
+    // PUT /api/users/{id}
+    // -----------------------------------------------------------------------
+
+    @Test
+    @DisplayName("PUT /api/users/{id} - returns 200 with updated user DTO")
+    void updateUser_returns200_withUpdatedDTO() throws Exception {
+        User updated = new User();
+        updated.setUsername("john_updated");
+        updated.setEmail("updated@example.com");
+        updated.setRole(Role.ROLE_USER);
+
+        UserDTO updatedDTO = new UserDTO();
+        updatedDTO.setId(1L);
+        updatedDTO.setUsername("john_updated");
+        updatedDTO.setEmail("updated@example.com");
+
+        when(userService.updateUser(eq(1L), any(User.class))).thenReturn(Optional.of(updated));
+        when(userService.mapToDTO(updated)).thenReturn(updatedDTO);
+
+        mockMvc.perform(put("/api/users/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updated)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("john_updated"));
+    }
+
+    @Test
+    @DisplayName("PUT /api/users/{id} - returns 404 when user not found")
+    void updateUser_returns404_whenNotFound() throws Exception {
+        when(userService.updateUser(eq(99L), any(User.class))).thenReturn(Optional.empty());
+
+        mockMvc.perform(put("/api/users/99")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(user)))
+                .andExpect(status().isNotFound());
+    }
+
+    // -----------------------------------------------------------------------
+    // PATCH /api/users/{id}/deactivate
+    // -----------------------------------------------------------------------
+
+    @Test
+    @DisplayName("PATCH /api/users/{id}/deactivate - returns 200 with deactivated user")
+    void deactivateUser_returns200() throws Exception {
+        user.setEnabled(false);
+        userDTO.setEnabled(false);
+        when(userService.deactivateUser(1L)).thenReturn(Optional.of(user));
+        when(userService.mapToDTO(user)).thenReturn(userDTO);
+
+        mockMvc.perform(patch("/api/users/1/deactivate"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.enabled").value(false));
+    }
+
+    @Test
+    @DisplayName("PATCH /api/users/{id}/deactivate - returns 404 when user not found")
+    void deactivateUser_returns404_whenNotFound() throws Exception {
+        when(userService.deactivateUser(99L)).thenReturn(Optional.empty());
+
+        mockMvc.perform(patch("/api/users/99/deactivate"))
+                .andExpect(status().isNotFound());
+    }
+
+    // -----------------------------------------------------------------------
+    // PATCH /api/users/{id}/reactivate
+    // -----------------------------------------------------------------------
+
+    @Test
+    @DisplayName("PATCH /api/users/{id}/reactivate - returns 200 with reactivated user")
+    void reactivateUser_returns200() throws Exception {
+        userDTO.setEnabled(true);
+        when(userService.reactivateUser(1L)).thenReturn(Optional.of(user));
+        when(userService.mapToDTO(user)).thenReturn(userDTO);
+
+        mockMvc.perform(patch("/api/users/1/reactivate"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.enabled").value(true));
+    }
+
+    @Test
+    @DisplayName("PATCH /api/users/{id}/reactivate - returns 404 when user not found")
+    void reactivateUser_returns404_whenNotFound() throws Exception {
+        when(userService.reactivateUser(99L)).thenReturn(Optional.empty());
+
+        mockMvc.perform(patch("/api/users/99/reactivate"))
+                .andExpect(status().isNotFound());
+    }
+
+    // -----------------------------------------------------------------------
+    // PATCH /api/users/{id}/role
+    // -----------------------------------------------------------------------
+
+    @Test
+    @DisplayName("PATCH /api/users/{id}/role - returns 200 when role changed successfully")
+    void changeRole_returns200_whenSuccessful() throws Exception {
+        userDTO.setRole("ROLE_ADMIN");
+        when(userService.changeRole(1L, "ROLE_ADMIN")).thenReturn(Optional.of(user));
+        when(userService.mapToDTO(user)).thenReturn(userDTO);
+
+        mockMvc.perform(patch("/api/users/1/role")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("role", "ROLE_ADMIN"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.role").value("ROLE_ADMIN"));
+    }
+
+    @Test
+    @DisplayName("PATCH /api/users/{id}/role - returns 404 when user not found")
+    void changeRole_returns404_whenNotFound() throws Exception {
+        when(userService.changeRole(99L, "ROLE_ADMIN")).thenReturn(Optional.empty());
+
+        mockMvc.perform(patch("/api/users/99/role")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("role", "ROLE_ADMIN"))))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("PATCH /api/users/{id}/role - returns 400 when demoting last admin")
+    void changeRole_returns400_whenDemotingLastAdmin() throws Exception {
+        when(userService.changeRole(1L, "ROLE_USER"))
+                .thenThrow(new IllegalStateException("Should have at least one admin"));
+
+        mockMvc.perform(patch("/api/users/1/role")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("role", "ROLE_USER"))))
+                .andExpect(status().isBadRequest());
     }
 }

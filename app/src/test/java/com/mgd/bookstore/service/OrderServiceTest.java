@@ -9,7 +9,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -58,6 +57,7 @@ class OrderServiceTest {
         book.setAuthor("Robert Martin");
         book.setPrice(new BigDecimal("39.99"));
         book.setCategories(List.of(Category.TECHNOLOGY));
+        book.setStock(100); // sufficient stock by default
 
         cart = new Cart(user);
         cart.setId(1L);
@@ -81,6 +81,7 @@ class OrderServiceTest {
         order.setUser(user);
         order.setOrderDate(LocalDateTime.now());
         order.setStatus(OrderStatus.PENDING);
+        order.setTransactionId("TXN001");
 
         List<OrderItem> orderItems = items.stream().map(ci -> {
             OrderItem oi = new OrderItem();
@@ -107,6 +108,7 @@ class OrderServiceTest {
         when(cartRepository.findByUser(user)).thenReturn(Optional.of(cart));
         when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
         when(cartRepository.saveAndFlush(any(Cart.class))).thenReturn(cart);
+        when(bookRepository.save(any(Book.class))).thenReturn(book);
 
         OrderResponseDTO result = orderService.checkout(user, null);
 
@@ -125,6 +127,7 @@ class OrderServiceTest {
         when(cartRepository.findByUser(user)).thenReturn(Optional.of(cart));
         when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
         when(cartRepository.saveAndFlush(any(Cart.class))).thenReturn(cart);
+        when(bookRepository.save(any(Book.class))).thenReturn(book);
 
         OrderResponseDTO result = orderService.checkout(user, List.of(100L));
 
@@ -140,11 +143,39 @@ class OrderServiceTest {
         when(cartRepository.findByUser(user)).thenReturn(Optional.of(cart));
         when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
         when(cartRepository.saveAndFlush(any(Cart.class))).thenReturn(cart);
+        when(bookRepository.save(any(Book.class))).thenReturn(book);
 
         orderService.checkout(user, null);
 
         assertThat(cart.getItems()).isEmpty();
         verify(cartRepository).saveAndFlush(cart);
+    }
+
+    @Test
+    @DisplayName("checkout - decrements book stock on checkout")
+    void checkout_decrementsBookStock() {
+        book.setStock(10);
+        Order savedOrder = buildSavedOrder(List.of(cartItem)); // quantity = 2
+        when(cartRepository.findByUser(user)).thenReturn(Optional.of(cart));
+        when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
+        when(cartRepository.saveAndFlush(any(Cart.class))).thenReturn(cart);
+        when(bookRepository.save(any(Book.class))).thenReturn(book);
+
+        orderService.checkout(user, null);
+
+        assertThat(book.getStock()).isEqualTo(8); // 10 - 2
+        verify(bookRepository).save(book);
+    }
+
+    @Test
+    @DisplayName("checkout - throws exception when stock is insufficient")
+    void checkout_throwsException_whenStockInsufficient() {
+        book.setStock(1); // only 1 in stock, but cartItem quantity = 2
+        when(cartRepository.findByUser(user)).thenReturn(Optional.of(cart));
+
+        assertThatThrownBy(() -> orderService.checkout(user, null))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Insufficient stock");
     }
 
     @Test
@@ -185,10 +216,25 @@ class OrderServiceTest {
         when(cartRepository.findByUser(user)).thenReturn(Optional.of(cart));
         when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
         when(cartRepository.saveAndFlush(any(Cart.class))).thenReturn(cart);
+        when(bookRepository.save(any(Book.class))).thenReturn(book);
 
         OrderResponseDTO result = orderService.checkout(user, null);
 
         assertThat(result.getStatus()).isEqualTo(OrderStatus.PENDING);
+    }
+
+    @Test
+    @DisplayName("checkout - order includes transactionId")
+    void checkout_orderIncludesTransactionId() {
+        Order savedOrder = buildSavedOrder(List.of(cartItem));
+        when(cartRepository.findByUser(user)).thenReturn(Optional.of(cart));
+        when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
+        when(cartRepository.saveAndFlush(any(Cart.class))).thenReturn(cart);
+        when(bookRepository.save(any(Book.class))).thenReturn(book);
+
+        OrderResponseDTO result = orderService.checkout(user, null);
+
+        assertThat(result.getTransactionId()).isNotNull().isNotBlank();
     }
 
     // -----------------------------------------------------------------------
@@ -203,6 +249,7 @@ class OrderServiceTest {
         savedOrder.setUser(user);
         savedOrder.setOrderDate(LocalDateTime.now());
         savedOrder.setStatus(OrderStatus.PENDING);
+        savedOrder.setTransactionId("XYZ123");
         OrderItem oi = new OrderItem();
         oi.setBook(book);
         oi.setQuantity(3);
@@ -211,6 +258,7 @@ class OrderServiceTest {
         savedOrder.setOrderItems(List.of(oi));
 
         when(bookRepository.findById(10L)).thenReturn(Optional.of(book));
+        when(bookRepository.save(any(Book.class))).thenReturn(book);
         when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
 
         OrderResponseDTO result = orderService.buyNow(user, 10L, 3);
@@ -221,6 +269,44 @@ class OrderServiceTest {
         assertThat(result.getItems().get(0).getBookTitle()).isEqualTo("Clean Code");
         assertThat(result.getItems().get(0).getQuantity()).isEqualTo(3);
         assertThat(result.getOrderTotal()).isEqualByComparingTo("119.97");
+    }
+
+    @Test
+    @DisplayName("buyNow - decrements book stock")
+    void buyNow_decrementsBookStock() {
+        book.setStock(10);
+        Order savedOrder = new Order();
+        savedOrder.setId(2L);
+        savedOrder.setUser(user);
+        savedOrder.setOrderDate(LocalDateTime.now());
+        savedOrder.setStatus(OrderStatus.PENDING);
+        savedOrder.setTransactionId("ABC999");
+        OrderItem oi = new OrderItem();
+        oi.setBook(book);
+        oi.setQuantity(2);
+        oi.setPrice(book.getPrice().multiply(BigDecimal.valueOf(2)));
+        oi.setOrder(savedOrder);
+        savedOrder.setOrderItems(List.of(oi));
+
+        when(bookRepository.findById(10L)).thenReturn(Optional.of(book));
+        when(bookRepository.save(any(Book.class))).thenReturn(book);
+        when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
+
+        orderService.buyNow(user, 10L, 2);
+
+        assertThat(book.getStock()).isEqualTo(8);
+        verify(bookRepository).save(book);
+    }
+
+    @Test
+    @DisplayName("buyNow - throws exception when stock is insufficient")
+    void buyNow_throwsException_whenStockInsufficient() {
+        book.setStock(1);
+        when(bookRepository.findById(10L)).thenReturn(Optional.of(book));
+
+        assertThatThrownBy(() -> orderService.buyNow(user, 10L, 5))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Insufficient stock");
     }
 
     @Test
@@ -241,6 +327,7 @@ class OrderServiceTest {
         savedOrder.setUser(user);
         savedOrder.setOrderDate(LocalDateTime.now());
         savedOrder.setStatus(OrderStatus.PENDING);
+        savedOrder.setTransactionId("NOTOUCHCART");
         OrderItem oi = new OrderItem();
         oi.setBook(book);
         oi.setQuantity(1);
@@ -249,6 +336,7 @@ class OrderServiceTest {
         savedOrder.setOrderItems(List.of(oi));
 
         when(bookRepository.findById(10L)).thenReturn(Optional.of(book));
+        when(bookRepository.save(any(Book.class))).thenReturn(book);
         when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
 
         orderService.buyNow(user, 10L, 1);
@@ -325,6 +413,17 @@ class OrderServiceTest {
         assertThat(dto.getOrderTotal()).isEqualByComparingTo("79.98");
         assertThat(dto.getUsername()).isEqualTo("john_doe");
         assertThat(dto.getStatus()).isEqualTo(OrderStatus.PENDING);
+    }
+
+    @Test
+    @DisplayName("mapOrderToDTO - maps transactionId correctly")
+    void mapOrderToDTO_mapsTransactionId() {
+        Order order = buildSavedOrder(List.of(cartItem));
+        order.setTransactionId("TXN001");
+
+        OrderResponseDTO dto = orderService.mapOrderToDTO(order);
+
+        assertThat(dto.getTransactionId()).isEqualTo("TXN001");
     }
 
     @Test

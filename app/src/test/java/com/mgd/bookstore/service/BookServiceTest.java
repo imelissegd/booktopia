@@ -40,6 +40,8 @@ class BookServiceTest {
         techBook.setPrice(new BigDecimal("39.99"));
         techBook.setDescription("A handbook of agile software craftsmanship");
         techBook.setCategories(List.of(Category.TECHNOLOGY));
+        techBook.setActive(true);
+        techBook.setStock(10);
 
         fantasyBook = new Book();
         fantasyBook.setId(2L);
@@ -48,31 +50,54 @@ class BookServiceTest {
         fantasyBook.setPrice(new BigDecimal("14.99"));
         fantasyBook.setDescription("A fantasy adventure");
         fantasyBook.setCategories(List.of(Category.FANTASY));
+        fantasyBook.setActive(true);
+        fantasyBook.setStock(5);
     }
 
     // -----------------------------------------------------------------------
-    // getAllBooks
+    // getAllBooks - only active books
     // -----------------------------------------------------------------------
 
     @Test
-    @DisplayName("getAllBooks - returns all books from repository")
-    void getAllBooks_returnsAllBooks() {
-        when(bookRepository.findAll()).thenReturn(List.of(techBook, fantasyBook));
+    @DisplayName("getAllBooks - returns only active books")
+    void getAllBooks_returnsOnlyActiveBooks() {
+        when(bookRepository.findByActive(true)).thenReturn(List.of(techBook, fantasyBook));
 
         List<Book> result = bookService.getAllBooks();
 
         assertThat(result).hasSize(2).containsExactlyInAnyOrder(techBook, fantasyBook);
-        verify(bookRepository).findAll();
+        verify(bookRepository).findByActive(true);
+        verify(bookRepository, never()).findAll();
     }
 
     @Test
-    @DisplayName("getAllBooks - returns empty list when no books exist")
-    void getAllBooks_returnsEmptyList_whenNoBooksExist() {
-        when(bookRepository.findAll()).thenReturn(List.of());
+    @DisplayName("getAllBooks - returns empty list when no active books")
+    void getAllBooks_returnsEmptyList_whenNoActiveBooks() {
+        when(bookRepository.findByActive(true)).thenReturn(List.of());
 
         List<Book> result = bookService.getAllBooks();
 
         assertThat(result).isEmpty();
+    }
+
+    // -----------------------------------------------------------------------
+    // getAllBooksAdmin - all books regardless of status
+    // -----------------------------------------------------------------------
+
+    @Test
+    @DisplayName("getAllBooksAdmin - returns all books including inactive")
+    void getAllBooksAdmin_returnsAllBooks() {
+        Book inactiveBook = new Book();
+        inactiveBook.setId(3L);
+        inactiveBook.setTitle("Delisted Book");
+        inactiveBook.setActive(false);
+
+        when(bookRepository.findAll()).thenReturn(List.of(techBook, fantasyBook, inactiveBook));
+
+        List<Book> result = bookService.getAllBooksAdmin();
+
+        assertThat(result).hasSize(3);
+        verify(bookRepository).findAll();
     }
 
     // -----------------------------------------------------------------------
@@ -88,6 +113,28 @@ class BookServiceTest {
 
         assertThat(result).isEqualTo(techBook);
         verify(bookRepository).save(techBook);
+    }
+
+    @Test
+    @DisplayName("saveBook - sets stock to 0 when stock is null")
+    void saveBook_setsStockToZero_whenStockIsNull() {
+        techBook.setStock(null);
+        when(bookRepository.save(techBook)).thenReturn(techBook);
+
+        bookService.saveBook(techBook);
+
+        assertThat(techBook.getStock()).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("saveBook - preserves existing stock when not null")
+    void saveBook_preservesStock_whenNotNull() {
+        techBook.setStock(42);
+        when(bookRepository.save(techBook)).thenReturn(techBook);
+
+        bookService.saveBook(techBook);
+
+        assertThat(techBook.getStock()).isEqualTo(42);
     }
 
     // -----------------------------------------------------------------------
@@ -112,6 +159,128 @@ class BookServiceTest {
         when(bookRepository.findById(99L)).thenReturn(Optional.empty());
 
         Optional<Book> result = bookService.getBookById(99L);
+
+        assertThat(result).isEmpty();
+    }
+
+    // -----------------------------------------------------------------------
+    // updateBook
+    // -----------------------------------------------------------------------
+
+    @Test
+    @DisplayName("updateBook - updates all fields and returns updated book")
+    void updateBook_updatesAndReturnsBook() {
+        Book updated = new Book();
+        updated.setTitle("Clean Architecture");
+        updated.setAuthor("Robert Martin");
+        updated.setPrice(new BigDecimal("44.99"));
+        updated.setDescription("New description");
+        updated.setCategories(List.of(Category.TECHNOLOGY));
+        updated.setStock(20);
+
+        when(bookRepository.findById(1L)).thenReturn(Optional.of(techBook));
+        when(bookRepository.save(any(Book.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Optional<Book> result = bookService.updateBook(1L, updated);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getTitle()).isEqualTo("Clean Architecture");
+        assertThat(result.get().getPrice()).isEqualByComparingTo("44.99");
+        assertThat(result.get().getStock()).isEqualTo(20);
+    }
+
+    @Test
+    @DisplayName("updateBook - returns empty Optional when book not found")
+    void updateBook_returnsEmpty_whenNotFound() {
+        when(bookRepository.findById(99L)).thenReturn(Optional.empty());
+
+        Optional<Book> result = bookService.updateBook(99L, new Book());
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("updateBook - sets stock to 0 when updated stock is null")
+    void updateBook_setsStockToZero_whenUpdatedStockIsNull() {
+        Book updated = new Book();
+        updated.setTitle("Title");
+        updated.setAuthor("Author");
+        updated.setPrice(BigDecimal.ONE);
+        updated.setStock(null);
+
+        when(bookRepository.findById(1L)).thenReturn(Optional.of(techBook));
+        when(bookRepository.save(any(Book.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Optional<Book> result = bookService.updateBook(1L, updated);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getStock()).isEqualTo(0);
+    }
+
+    // -----------------------------------------------------------------------
+    // deleteBook
+    // -----------------------------------------------------------------------
+
+    @Test
+    @DisplayName("deleteBook - calls repository deleteById")
+    void deleteBook_callsRepositoryDeleteById() {
+        doNothing().when(bookRepository).deleteById(1L);
+
+        bookService.deleteBook(1L);
+
+        verify(bookRepository).deleteById(1L);
+    }
+
+    // -----------------------------------------------------------------------
+    // delistBook
+    // -----------------------------------------------------------------------
+
+    @Test
+    @DisplayName("delistBook - sets active to false and saves")
+    void delistBook_setsActiveToFalse() {
+        when(bookRepository.findById(1L)).thenReturn(Optional.of(techBook));
+        when(bookRepository.save(any(Book.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Optional<Book> result = bookService.delistBook(1L);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().isActive()).isFalse();
+        verify(bookRepository).save(techBook);
+    }
+
+    @Test
+    @DisplayName("delistBook - returns empty Optional when book not found")
+    void delistBook_returnsEmpty_whenNotFound() {
+        when(bookRepository.findById(99L)).thenReturn(Optional.empty());
+
+        Optional<Book> result = bookService.delistBook(99L);
+
+        assertThat(result).isEmpty();
+    }
+
+    // -----------------------------------------------------------------------
+    // relistBook
+    // -----------------------------------------------------------------------
+
+    @Test
+    @DisplayName("relistBook - sets active to true and saves")
+    void relistBook_setsActiveToTrue() {
+        techBook.setActive(false);
+        when(bookRepository.findById(1L)).thenReturn(Optional.of(techBook));
+        when(bookRepository.save(any(Book.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Optional<Book> result = bookService.relistBook(1L);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().isActive()).isTrue();
+    }
+
+    @Test
+    @DisplayName("relistBook - returns empty Optional when book not found")
+    void relistBook_returnsEmpty_whenNotFound() {
+        when(bookRepository.findById(99L)).thenReturn(Optional.empty());
+
+        Optional<Book> result = bookService.relistBook(99L);
 
         assertThat(result).isEmpty();
     }

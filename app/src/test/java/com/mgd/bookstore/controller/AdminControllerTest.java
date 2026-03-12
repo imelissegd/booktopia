@@ -65,18 +65,23 @@ class AdminControllerTest {
         book.setPrice(new BigDecimal("39.99"));
         book.setDescription("Agile software craftsmanship");
         book.setCategories(List.of(Category.TECHNOLOGY));
+        book.setActive(true);
+        book.setStock(10);
 
         user = new User();
         user.setId(1L);
         user.setUsername("john_doe");
         user.setEmail("john@example.com");
         user.setRole(Role.ROLE_USER);
+        user.setEnabled(true);
         user.setOrders(new ArrayList<>());
 
         userDTO = new UserDTO();
         userDTO.setId(1L);
         userDTO.setUsername("john_doe");
         userDTO.setEmail("john@example.com");
+        userDTO.setRole("ROLE_USER");
+        userDTO.setEnabled(true);
         userDTO.setOrders(List.of());
     }
 
@@ -94,7 +99,8 @@ class AdminControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].username").value("john_doe"))
-                .andExpect(jsonPath("$[0].email").value("john@example.com"));
+                .andExpect(jsonPath("$[0].email").value("john@example.com"))
+                .andExpect(jsonPath("$[0].role").value("ROLE_USER"));
     }
 
     @Test
@@ -159,7 +165,7 @@ class AdminControllerTest {
         mockMvc.perform(put("/api/admin/books/99")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(book)))
-                .andExpect(status().isNotFound()); // 404 instead of 500
+                .andExpect(status().isNotFound());
     }
 
     // -----------------------------------------------------------------------
@@ -202,6 +208,6 @@ class AdminControllerTest {
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
 
         mockMvc.perform(post("/api/admin/users/99/promote"))
-                .andExpect(status().isNotFound()); // 404 instead of 500
+                .andExpect(status().isNotFound());
     }
 }

@@ -68,6 +68,7 @@ class OrderControllerTest {
 
         orderResponseDTO = new OrderResponseDTO();
         orderResponseDTO.setOrderId(1L);
+        orderResponseDTO.setTransactionId("TXN001");
         orderResponseDTO.setUsername("john_doe");
         orderResponseDTO.setOrderDate(LocalDateTime.of(2024, 6, 1, 10, 0));
         orderResponseDTO.setStatus(OrderStatus.PENDING);
