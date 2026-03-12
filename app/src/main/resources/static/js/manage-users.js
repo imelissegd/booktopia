@@ -1,6 +1,6 @@
 console.log("manage-users.js loaded");
 
-const usersPerPage = 12;
+let usersPerPage = 10;
 let currentPage = 1;
 let currentView = "list";
 let users = [];
@@ -203,6 +203,14 @@ function renderListView(userList, pageUsers) {
     </table>`;
 }
 
+// --- Per-page change ---
+function changeUsersPerPage(val) {
+  usersPerPage = parseInt(val);
+  currentPage = 1;
+  renderUsersPage(currentPage);
+  setupPagination();
+}
+
 // --- Pagination ---
 function setupPagination() {
   const pagination = document.getElementById("pagination");
@@ -210,6 +218,17 @@ function setupPagination() {
   if (!filteredUsers.length) return;
 
   const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+
+  // Prev button
+  const prevBtn = document.createElement("button");
+  prevBtn.textContent = "← Prev";
+  prevBtn.disabled = currentPage === 1;
+  prevBtn.onclick = () => {
+    if (currentPage > 1) { currentPage--; renderUsersPage(currentPage); setupPagination(); }
+  };
+  pagination.appendChild(prevBtn);
+
+  // Page number buttons
   for (let i = 1; i <= totalPages; i++) {
     const btn = document.createElement("button");
     btn.textContent = i;
@@ -221,6 +240,15 @@ function setupPagination() {
     };
     pagination.appendChild(btn);
   }
+
+  // Next button
+  const nextBtn = document.createElement("button");
+  nextBtn.textContent = "Next →";
+  nextBtn.disabled = currentPage === totalPages;
+  nextBtn.onclick = () => {
+    if (currentPage < totalPages) { currentPage++; renderUsersPage(currentPage); setupPagination(); }
+  };
+  pagination.appendChild(nextBtn);
 }
 
 // --- Edit user ---

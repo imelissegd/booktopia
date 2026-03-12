@@ -111,6 +111,16 @@
       <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
 
+    <!-- Per-page selector -->
+    <div class="category-wrap">
+      <select class="category-select" onchange="changeUsersPerPage(this.value)">
+        <option value="10">10 per page</option>
+        <option value="25">25 per page</option>
+        <option value="50">50 per page</option>
+      </select>
+      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+
     <div class="view-toggle">
       <button class="view-toggle-btn" id="gridViewBtn" title="Grid view" onclick="setView('grid')">
         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>

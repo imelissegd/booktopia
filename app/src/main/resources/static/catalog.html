@@ -362,6 +362,16 @@
       </svg>
     </div>
 
+    <!-- Per-page selector -->
+    <div class="category-wrap">
+      <select class="category-select" onchange="changeBooksPerPage(this.value)">
+        <option value="10">10 per page</option>
+        <option value="25">25 per page</option>
+        <option value="50">50 per page</option>
+      </select>
+      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+
     <!-- View toggle -->
     <div class="view-toggle">
       <button class="view-toggle-btn active" id="gridViewBtn" title="Grid view" onclick="setView('grid')">
@@ -373,14 +383,16 @@
     </div>
   </div>
 
-  <p id="resultsCount" class="results-count"></p>
-  <p id="categoryHint" class="results-count" style="display:none;margin-top:-0.5rem;margin-bottom:0.75rem">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
-         style="width:12px;height:12px;display:inline;vertical-align:middle;margin-right:3px;color:var(--muted)">
-      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-    </svg>
-    Showing books that match <strong>ANY</strong> of the selected categories
-  </p>
+  <div style="display:flex;align-items:center;justify-content:space-between;max-width:1200px;margin:0 auto 0.75rem;padding:0 20px;min-height:1.2rem">
+    <p id="resultsCount" class="results-count" style="margin:0;padding:0"></p>
+    <p id="categoryHint" class="results-count" style="display:none;margin:0;padding:0">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+           style="width:12px;height:12px;display:inline;vertical-align:middle;margin-right:3px;color:var(--muted)">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      Showing books that match <strong>ANY</strong> of the selected categories
+    </p>
+  </div>
 
   <div id="bookList"></div>
   <div id="pagination" class="pagination"></div>
