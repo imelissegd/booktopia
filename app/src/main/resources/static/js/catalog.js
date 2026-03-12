@@ -380,6 +380,21 @@ function updateModalTotal(unitPrice) {
   document.getElementById("modalTotal").textContent = `₱${(unitPrice * qty).toFixed(2)}`;
 }
 
+// Prevents invalid input in quantity fields: no dash, decimals, paste of non-digits, or clearing the field
+function lockQtyInput(el) {
+  el.addEventListener("keydown", e => {
+    if (["-", ".", "+", "e", "E"].includes(e.key)) e.preventDefault();
+  });
+  el.addEventListener("paste", e => e.preventDefault());
+  el.addEventListener("input", () => {
+    el.value = el.value.replace(/[^0-9]/g, "");
+    if (el.value === "" || parseInt(el.value) < 1) el.value = 1;
+  });
+  el.addEventListener("blur", () => {
+    if (el.value === "" || parseInt(el.value) < 1) el.value = 1;
+  });
+}
+
 function openAddToCart(bookId) {
   if (loggedInUser?.role === "ROLE_ADMIN") return;
 
@@ -403,6 +418,7 @@ function openAddToCart(bookId) {
       </div>
     </div>`;
   document.querySelector("#modalContainer .modal").addEventListener("click", e => e.stopPropagation());
+  lockQtyInput(document.getElementById("qty"));
 }
 
 function openCheckout(bookId, maxQty = null) {
@@ -431,6 +447,7 @@ function openCheckout(bookId, maxQty = null) {
       </div>
     </div>`;
   document.querySelector("#modalContainer .modal").addEventListener("click", e => e.stopPropagation());
+  lockQtyInput(document.getElementById("qty"));
 }
 
 function openLoginPrompt() {

@@ -41,6 +41,19 @@ if (isAdmin) {
     }
 }
 
+function lockQtyInput(el) {
+    el.addEventListener("keydown", e => {
+        if (["-", ".", "+", "e", "E"].includes(e.key)) e.preventDefault();
+    });
+    el.addEventListener("paste", e => e.preventDefault());
+    el.addEventListener("input", () => {
+        el.value = el.value.replace(/[^0-9]/g, "");
+    });
+    el.addEventListener("blur", () => {
+        if (el.value === "" || parseInt(el.value) < 0) el.value = 0;
+    });
+}
+
 // --- Fetch ---
 function fetchCart() {
     container.innerHTML = `<div class="table-loading">Loading cart…</div>`;
@@ -130,6 +143,8 @@ function renderCart() {
         document.getElementById("selectAll").addEventListener("change", e => {
             document.querySelectorAll(".selectItem").forEach(cb => cb.checked = e.target.checked);
         });
+
+        document.querySelectorAll(".qty-input").forEach(lockQtyInput);
     }
 }
 

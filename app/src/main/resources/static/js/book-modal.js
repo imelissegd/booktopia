@@ -119,6 +119,7 @@ function expandModalCart(bookId, price) {
         <button class="modal-btn-ghost" onclick="collapseModalActions(${bookId}, ${price})">Cancel</button>
       </div>
     </div>`;
+    lockQtyInput(document.getElementById("modalQty"));
 }
 
 function expandModalBuy(bookId, price) {
@@ -137,6 +138,7 @@ function expandModalBuy(bookId, price) {
         <button class="modal-btn-ghost" onclick="collapseModalActions(${bookId}, ${price})">Cancel</button>
       </div>
     </div>`;
+    lockQtyInput(document.getElementById("modalQty"));
 }
 
 function collapseModalActions(bookId, price) {
@@ -340,4 +342,18 @@ function adjustQty(bookId, maxQty) {
 
 function formatCategory(cat) {
     return cat.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function lockQtyInput(el) {
+    el.addEventListener("keydown", e => {
+        if (["-", ".", "+", "e", "E"].includes(e.key)) e.preventDefault();
+    });
+    el.addEventListener("paste", e => e.preventDefault());
+    el.addEventListener("input", () => {
+        el.value = el.value.replace(/[^0-9]/g, "");
+        if (el.value === "" || parseInt(el.value) < 1) el.value = 1;
+    });
+    el.addEventListener("blur", () => {
+        if (el.value === "" || parseInt(el.value) < 1) el.value = 1;
+    });
 }
