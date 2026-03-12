@@ -152,22 +152,22 @@ function renderListView(userList, pageUsers) {
     const roleBadgeClass = user.role === "ROLE_ADMIN" ? "role--admin" : "role--user";
     const roleLabel = user.role === "ROLE_ADMIN" ? "Admin" : "User";
 
-    const deactivateRelist = user.enabled !== false
-        ? `<button class="tbl-btn tbl-btn--danger" onclick="deactivateUser(${user.id})">Deactivate</button>`
-        : `<button class="tbl-btn tbl-btn--ghost" style="border-color:var(--teal);color:var(--teal)" onclick="reactivateUser(${user.id})">Reactivate</button>`;
+    const statusBadge = user.enabled !== false
+        ? `<span class="list-badge" style="border-color:var(--teal);color:var(--teal)">Active</span>`
+        : `<span class="list-badge" style="border-color:var(--error);color:var(--error)">Deactivated</span>`;
 
     const promoteBtn = user.role === "ROLE_ADMIN"
         ? `<button class="tbl-btn tbl-btn--ghost" style="border-color:var(--teal);color:var(--teal)" onclick="changeRole(${user.id}, 'ROLE_USER')">Demote</button>`
         : `<button class="tbl-btn tbl-btn--ghost" style="border-color:var(--teal);color:var(--teal)" onclick="changeRole(${user.id}, 'ROLE_ADMIN')">Promote</button>`;
 
-    const statusBadge = user.enabled !== false
-        ? `<span class="list-badge" style="border-color:var(--teal);color:var(--teal)">Active</span>`
-        : `<span class="list-badge" style="border-color:var(--error);color:var(--error)">Deactivated</span>`;
+    const deactivateRelist = user.enabled !== false
+        ? `<button class="tbl-btn tbl-btn--danger" onclick="deactivateUser(${user.id})">Deactivate</button>`
+        : `<button class="tbl-btn tbl-btn--ghost" style="border-color:var(--teal);color:var(--teal)" onclick="reactivateUser(${user.id})">Reactivate</button>`;
 
     return `
-      <tr style="${user.enabled === false ? 'opacity:0.5' : ''}">
+      <tr style="${user.enabled === false ? 'opacity:0.55' : ''}">
         <td>
-          <div style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:var(--offwhite);border:1.5px solid var(--border)">
+          <div style="display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:var(--offwhite);border:1.5px solid var(--border);flex-shrink:0">
             <svg viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.6" width="18" height="18"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           </div>
         </td>
@@ -177,13 +177,11 @@ function renderListView(userList, pageUsers) {
         </td>
         <td><span class="user-role-badge ${roleBadgeClass}">${roleLabel}</span></td>
         <td>${statusBadge}</td>
-        <td>
-          <div class="list-actions">
-            <button class="tbl-btn tbl-btn--ghost" onclick="editUser(${user.id})">Edit</button>
-            ${promoteBtn}
-            ${deactivateRelist}
-          </div>
-        </td>
+        <td><div class="list-actions">
+          <button class="tbl-btn tbl-btn--ghost" onclick="editUser(${user.id})">Edit</button>
+          ${promoteBtn}
+          ${deactivateRelist}
+        </div></td>
       </tr>`;
   }).join("");
 
