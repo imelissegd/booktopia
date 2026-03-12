@@ -91,7 +91,7 @@ function renderCart() {
       <td class="td-price">₱${item.unitPrice}</td>
       <td class="td-price td-bold">₱${item.totalPrice}</td>
       <td class="td-actions">
-        <button class="tbl-btn tbl-btn--ghost" onclick="openViewBook(${item.bookId})">View Book</button>
+        <button class="tbl-btn tbl-btn--ghost" style="background:var(--offwhite)" onclick="openViewBook(${item.bookId})">View Book</button>
         ${!isAdmin ? `<button class="tbl-btn tbl-btn--danger" onclick="removeItem(${item.cartItemId})">Remove</button>` : ``}
       </td>
     </tr>
