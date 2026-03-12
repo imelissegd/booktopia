@@ -10,7 +10,7 @@
     .form-page-main {
       max-width: 580px;
       margin: 0 auto;
-      padding: 2.5rem 1.5rem 4rem;
+      padding: 2.5rem 24px 4rem;
     }
 
     .form-page-header { margin-bottom: 2rem; }
@@ -26,12 +26,17 @@
 
     .form-page-subtitle { font-size: 0.85rem; color: var(--muted); margin: 0; }
 
-    .form-section {
+    .form-card {
       background: var(--surface);
       border: 1.5px solid var(--border);
-      border-radius: 12px;
-      padding: 1.5rem;
-      margin-bottom: 1.2rem;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    .form-section {
+      background: var(--surface);
+      padding: 1.5rem 1.8rem;
+      border-bottom: 1.5px solid var(--border);
     }
 
     .form-section-title {
@@ -113,142 +118,85 @@
 
     .field-error.visible { display: block; }
 
-    .form-actions {
+    .form-footer {
+      padding: 1.2rem 1.8rem;
       display: flex;
-      gap: 0.75rem;
+      align-items: center;
       justify-content: flex-end;
-      margin-top: 1.5rem;
+      gap: 0.75rem;
+      background: var(--offwhite);
+      border-top: 1.5px solid var(--border);
+      border-radius: 0 0 12px 12px;
     }
 
     .btn-cancel {
-      padding: 0.72rem 1.4rem;
+      padding: 0.7rem 1.3rem;
       font-family: 'DM Sans', sans-serif;
       font-size: 0.82rem;
       font-weight: 600;
+      color: var(--charcoal);
+      background: transparent;
       border: 1.5px solid var(--border);
       border-radius: 8px;
-      background: transparent;
-      color: var(--charcoal);
       cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
       text-decoration: none;
       display: inline-flex;
       align-items: center;
-      transition: border-color 0.2s, color 0.2s;
     }
 
     .btn-cancel:hover { border-color: var(--charcoal); }
 
     .btn-submit {
-      padding: 0.72rem 1.6rem;
+      padding: 0.7rem 1.6rem;
       font-family: 'DM Sans', sans-serif;
       font-size: 0.82rem;
       font-weight: 600;
-      background: var(--teal);
+      letter-spacing: 0.06em;
       color: #fff;
+      background: var(--teal);
       border: none;
       border-radius: 8px;
       cursor: pointer;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
       display: inline-flex;
       align-items: center;
-      gap: 0.5rem;
-      transition: background 0.2s, transform 0.15s;
-      min-width: 120px;
-      justify-content: center;
+      gap: 0.4rem;
     }
 
-    .btn-submit:hover { background: var(--teal-dark); transform: translateY(-1px); }
-    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .btn-submit:hover { background: var(--teal-dark); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,137,123,0.28); }
+    .btn-submit:active { transform: translateY(0); box-shadow: none; }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
 
-    .spinner {
+    .btn-submit svg {
       width: 14px; height: 14px;
-      border: 2px solid rgba(255,255,255,0.4);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin 0.6s linear infinite;
+      stroke: currentColor; fill: none;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    .form-banner {
       display: none;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.85rem 1.8rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+      border-top: 1.5px solid var(--border);
+      border-radius: 0 0 12px 12px;
+    }
+
+    .form-banner.visible { display: flex; }
+    .form-banner.success { background: rgba(46,125,82,0.08); color: var(--success); }
+    .form-banner.error   { background: rgba(192,57,43,0.08); color: var(--error); }
+
+    .form-banner svg {
+      width: 16px; height: 16px;
+      stroke: currentColor; fill: none;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+      flex-shrink: 0;
     }
 
     @keyframes spin { to { transform: rotate(360deg); } }
-
-    .modal-overlay {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.45);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 1000; padding: 1rem;
-    }
-
-    .success-modal {
-      background: var(--surface);
-      border: 1.5px solid var(--border);
-      border-radius: 14px;
-      padding: 2rem 1.75rem;
-      max-width: 380px;
-      width: 100%;
-      text-align: center;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.15);
-    }
-
-    .success-modal-icon {
-      width: 52px; height: 52px;
-      border-radius: 50%;
-      background: rgba(46,125,82,0.1);
-      border: 1.5px solid rgba(46,125,82,0.25);
-      display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 1rem;
-      color: var(--success);
-    }
-
-    .success-modal h2 {
-      font-family: 'DM Serif Display', serif;
-      font-size: 1.4rem;
-      font-weight: 400;
-      color: var(--charcoal);
-      margin: 0 0 0.4rem;
-    }
-
-    .success-modal p {
-      font-size: 0.85rem;
-      color: var(--muted);
-      margin: 0 0 1.5rem;
-    }
-
-    .success-modal-actions {
-      display: flex;
-      flex-direction: column;
-      gap: 0.6rem;
-    }
-
-    .modal-btn-primary {
-      width: 100%;
-      padding: 0.72rem 1rem;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.85rem;
-      font-weight: 600;
-      background: var(--teal);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .modal-btn-primary:hover { background: var(--teal-dark); }
-
-    .modal-btn-ghost {
-      width: 100%;
-      padding: 0.72rem 1rem;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.85rem;
-      font-weight: 600;
-      background: transparent;
-      color: var(--charcoal);
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      cursor: pointer;
-      transition: border-color 0.2s;
-    }
-
-    .modal-btn-ghost:hover { border-color: var(--charcoal); }
   </style>
 </head>
 <body class="page-body">
@@ -261,52 +209,65 @@
     <p class="form-page-subtitle">Create a new customer or admin account.</p>
   </div>
 
-  <!-- Account Info -->
-  <div class="form-section">
-    <p class="form-section-title">Account Information</p>
+  <div class="form-card">
 
-    <div class="field-group">
-      <label for="username">Username <span>*</span></label>
-      <input type="text" id="username" class="field-input" placeholder="e.g. johndoe" autocomplete="off">
-      <p class="field-error" id="usernameError">Username is required.</p>
-    </div>
+    <!-- Account Info -->
+    <div class="form-section">
+      <p class="form-section-title">Account Information</p>
 
-    <div class="field-group">
-      <label for="email">Email <span>*</span></label>
-      <input type="email" id="email" class="field-input" placeholder="e.g. john@example.com" autocomplete="off">
-      <p class="field-error" id="emailError">A valid email is required.</p>
-    </div>
+      <div class="field-group">
+        <label for="username">Username <span>*</span></label>
+        <input type="text" id="username" class="field-input" placeholder="e.g. johndoe" autocomplete="off">
+        <p class="field-error" id="usernameError">Username is required.</p>
+      </div>
 
-    <div class="field-group">
-      <label for="password">Password <span>*</span></label>
-      <input type="password" id="password" class="field-input" placeholder="Min. 6 characters" autocomplete="new-password">
-      <p class="field-error" id="passwordError">Password must be at least 6 characters.</p>
-    </div>
+      <div class="field-group">
+        <label for="email">Email <span>*</span></label>
+        <input type="email" id="email" class="field-input" placeholder="e.g. john@example.com" autocomplete="off">
+        <p class="field-error" id="emailError">A valid email is required.</p>
+      </div>
 
-    <div class="field-group">
-      <label for="role">Role <span>*</span></label>
-      <div class="field-select-wrap">
-        <select id="role" class="field-select">
-          <option value="ROLE_USER">User</option>
-          <option value="ROLE_ADMIN">Admin</option>
-        </select>
-        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      <div class="field-group">
+        <label for="password">Password <span>*</span></label>
+        <input type="password" id="password" class="field-input" placeholder="Min. 6 characters" autocomplete="new-password">
+        <p class="field-error" id="passwordError">Password must be at least 6 characters.</p>
+      </div>
+
+      <div class="field-group">
+        <label for="role">Role <span>*</span></label>
+        <div class="field-select-wrap">
+          <select id="role" class="field-select">
+            <option value="ROLE_USER">User</option>
+            <option value="ROLE_ADMIN">Admin</option>
+          </select>
+          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="form-actions">
-    <a href="manage-users.html" class="btn-cancel">Cancel</a>
-    <button class="btn-submit" id="submitBtn" onclick="submitForm()">
-      <span class="spinner" id="spinner"></span>
-      <span id="submitLabel">Add User</span>
-    </button>
+    <!-- Banner -->
+    <div class="form-banner" id="formBanner">
+      <svg id="bannerIcon" viewBox="0 0 24 24"></svg>
+      <span id="bannerMsg"></span>
+    </div>
+
+    <!-- Footer -->
+    <div class="form-footer">
+      <a href="manage-users.html" class="btn-cancel">Cancel</a>
+      <button class="btn-submit" id="submitBtn" onclick="submitForm()">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add User
+      </button>
+    </div>
+
   </div>
 </main>
 
 <script src="/js/navbar.js"></script>
 <script src="/js/admin-sidebar.js"></script>
-<div id="modalContainer"></div>
+<style>
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+</style>
 <script>
   function validate() {
     let valid = true;
@@ -347,16 +308,24 @@
     return valid;
   }
 
+  function showBanner(type, msg) {
+    const banner = document.getElementById("formBanner");
+    const icon   = document.getElementById("bannerIcon");
+    const text   = document.getElementById("bannerMsg");
+    banner.className = `form-banner visible ${type}`;
+    text.textContent = msg;
+    icon.innerHTML = type === "success"
+            ? `<circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/>`
+            : `<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>`;
+  }
+
   function submitForm() {
     if (!validate()) return;
 
-    const btn   = document.getElementById("submitBtn");
-    const label = document.getElementById("submitLabel");
-    const spinner = document.getElementById("spinner");
-
+    const btn = document.getElementById("submitBtn");
     btn.disabled = true;
-    spinner.style.display = "block";
-    label.textContent = "Adding…";
+    btn.innerHTML = `<svg viewBox="0 0 24 24" style="animation:spin 0.8s linear infinite"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Adding…`;
+    document.getElementById("formBanner").className = "form-banner";
 
     const payload = {
       username: document.getElementById("username").value.trim(),
@@ -376,18 +345,18 @@
               return res.json();
             })
             .then(() => {
-              spinner.style.display = "none";
               btn.disabled = false;
-              label.textContent = "Add User";
-              btn.style.background = "";
+              btn.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> User Added`;
+              showBanner("success", `"${payload.username}" has been successfully created.`);
+              btn.disabled = false;
+              btn.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> User Added`;
               showSuccessModal(payload.username);
             })
             .catch(err => {
               console.error(err);
-              spinner.style.display = "none";
-              label.textContent = "Add User";
               btn.disabled = false;
-              alert("Failed to add user. The username or email may already be taken.");
+              btn.innerHTML = `<svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add User`;
+              showBanner("error", "Failed to add user. The username or email may already be taken.");
             });
   }
 
@@ -396,18 +365,17 @@
       <div class="modal-overlay">
         <div class="success-modal">
           <div class="success-modal-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><polyline points="20 6 9 17 4 12"/></svg>
           </div>
           <h2>User Added!</h2>
           <p><strong>${username}</strong> has been successfully created.</p>
           <div class="success-modal-actions">
             <button class="modal-btn-primary" onclick="addAnotherUser()">Add Another User</button>
-            <button class="modal-btn-ghost" onclick="window.location.href='manage-users.html'">Go to Users List</button>
+            <button class="modal-btn-ghost" onclick="window.location.href='manage-users.html'">View Users</button>
           </div>
         </div>
       </div>`;
+    document.querySelector("#modalContainer .success-modal").addEventListener("click", e => e.stopPropagation());
   }
 
   function addAnotherUser() {
@@ -415,15 +383,27 @@
     document.getElementById("email").value = "";
     document.getElementById("password").value = "";
     document.getElementById("role").value = "ROLE_USER";
-    ["username","email","password"].forEach(id => {
-      document.getElementById(id).classList.remove("error");
-    });
-    ["usernameError","emailError","passwordError"].forEach(id => {
-      document.getElementById(id).classList.remove("visible");
-    });
+    ["username","email","password"].forEach(id => document.getElementById(id).classList.remove("error"));
+    ["usernameError","emailError","passwordError"].forEach(id => document.getElementById(id).classList.remove("visible"));
+    document.getElementById("submitBtn").innerHTML = `<svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add User`;
+    document.getElementById("formBanner").className = "form-banner";
     document.getElementById("modalContainer").innerHTML = "";
     document.getElementById("username").focus();
   }
 </script>
+
+<style>
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1rem; }
+  .success-modal { background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 2rem 1.75rem; max-width: 360px; width: 100%; text-align: center; box-shadow: 0 12px 40px rgba(0,0,0,0.15); }
+  .success-modal-icon { width: 52px; height: 52px; border-radius: 50%; background: rgba(46,125,82,0.1); border: 1.5px solid rgba(46,125,82,0.25); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: var(--success); }
+  .success-modal h2 { font-family: 'DM Serif Display', serif; font-size: 1.4rem; font-weight: 400; color: var(--charcoal); margin: 0 0 0.4rem; }
+  .success-modal p  { font-size: 0.85rem; color: var(--muted); margin: 0 0 1.5rem; }
+  .success-modal-actions { display: flex; flex-direction: column; gap: 0.6rem; }
+  .modal-btn-primary { width: 100%; padding: 0.72rem 1rem; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 600; background: var(--teal); color: #fff; border: none; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
+  .modal-btn-primary:hover { background: var(--teal-dark); }
+  .modal-btn-ghost   { width: 100%; padding: 0.72rem 1rem; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 600; background: transparent; color: var(--charcoal); border: 1.5px solid var(--border); border-radius: 8px; cursor: pointer; transition: border-color 0.2s; }
+  .modal-btn-ghost:hover { border-color: var(--charcoal); }
+</style>
+<div id="modalContainer"></div>
 </body>
 </html>

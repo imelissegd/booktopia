@@ -398,7 +398,7 @@
 
         <!-- Footer -->
         <div class="form-footer">
-            <a class="btn-cancel" href="admin-dashboard.html">Cancel</a>
+            <a class="btn-cancel" href="catalog.html?mode=manage">Cancel</a>
             <button class="btn-submit" id="submitBtn" onclick="submitBook()">
                 <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 Add Book
@@ -521,26 +521,9 @@
             if (!res.ok) throw new Error("Server error");
             const data = await res.json();
 
-            showBanner("success", `"${data.title}" has been added to the catalog.`);
             btn.disabled = false;
             btn.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Book Added`;
-
-            // Reset after 2s and offer to add another
-            setTimeout(() => {
-                document.getElementById("bookTitle").value = "";
-                document.getElementById("bookAuthor").value = "";
-                document.getElementById("bookPrice").value = "";
-                document.getElementById("bookStock").value = "";
-                document.getElementById("bookDescription").value = "";
-                document.getElementById("bookImage").value = "";
-                previewImage("");
-                document.querySelectorAll("#categoryGrid input").forEach(cb => {
-                    cb.checked = false;
-                    cb.closest(".category-chip").classList.remove("checked");
-                });
-                btn.innerHTML = `<svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Book`;
-                document.getElementById("formBanner").className = "form-banner";
-            }, 2500);
+            showSuccessModal(data.title);
 
         } catch (err) {
             console.error(err);
@@ -549,11 +532,83 @@
             btn.innerHTML = `<svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Book`;
         }
     }
+
+    function escHtml(str) {
+        return String(str).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    }
+
+    function showSuccessModal(title) {
+        document.getElementById("modalContainer").innerHTML = `
+        <div class="modal-overlay">
+          <div class="success-modal">
+            <div class="success-modal-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <h2>Book Added!</h2>
+            <p><strong>${escHtml(title)}</strong> has been added to the catalog.</p>
+            <div class="success-modal-actions">
+              <button class="modal-btn-primary" onclick="addAnotherBook()">Add Another Book</button>
+              <button class="modal-btn-ghost" onclick="window.location.href='catalog.html?mode=manage'">View Books</button>
+            </div>
+          </div>
+        </div>`;
+        document.querySelector("#modalContainer .success-modal").addEventListener("click", e => e.stopPropagation());
+    }
+
+    function addAnotherBook() {
+        document.getElementById("bookTitle").value = "";
+        document.getElementById("bookAuthor").value = "";
+        document.getElementById("bookPrice").value = "";
+        document.getElementById("bookStock").value = "";
+        document.getElementById("bookDescription").value = "";
+        document.getElementById("bookImage").value = "";
+        previewImage("");
+        document.querySelectorAll("#categoryGrid input").forEach(cb => {
+            cb.checked = false;
+            cb.closest(".category-chip").classList.remove("checked");
+        });
+        document.getElementById("submitBtn").innerHTML = `<svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Book`;
+        document.getElementById("formBanner").className = "form-banner";
+        document.getElementById("modalContainer").innerHTML = "";
+        document.getElementById("bookTitle").focus();
+    }
 </script>
 
 <style>
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 </style>
+
+<style>
+    .modal-overlay {
+        position: fixed; inset: 0;
+        background: rgba(0,0,0,0.45);
+        display: flex; align-items: center; justify-content: center;
+        z-index: 1000; padding: 1rem;
+    }
+    .success-modal {
+        background: var(--surface);
+        border: 1.5px solid var(--border);
+        border-radius: 14px;
+        padding: 2rem 1.75rem;
+        max-width: 360px; width: 100%;
+        text-align: center;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+    }
+    .success-modal-icon {
+        width: 52px; height: 52px; border-radius: 50%;
+        background: rgba(46,125,82,0.1); border: 1.5px solid rgba(46,125,82,0.25);
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 1rem; color: var(--success);
+    }
+    .success-modal h2 { font-family: 'DM Serif Display', serif; font-size: 1.4rem; font-weight: 400; color: var(--charcoal); margin: 0 0 0.4rem; }
+    .success-modal p  { font-size: 0.85rem; color: var(--muted); margin: 0 0 1.5rem; }
+    .success-modal-actions { display: flex; flex-direction: column; gap: 0.6rem; }
+    .modal-btn-primary { width: 100%; padding: 0.72rem 1rem; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 600; background: var(--teal); color: #fff; border: none; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
+    .modal-btn-primary:hover { background: var(--teal-dark); }
+    .modal-btn-ghost   { width: 100%; padding: 0.72rem 1rem; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 600; background: transparent; color: var(--charcoal); border: 1.5px solid var(--border); border-radius: 8px; cursor: pointer; transition: border-color 0.2s; }
+    .modal-btn-ghost:hover { border-color: var(--charcoal); }
+</style>
+<div id="modalContainer"></div>
 
 </body>
 </html>

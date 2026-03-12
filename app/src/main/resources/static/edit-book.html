@@ -250,9 +250,6 @@
             <h1>Edit Book</h1>
             <p id="pageSubtitle">Loading book details…</p>
         </div>
-        <a href="catalog.html?mode=manage" class="btn-cancel" style="margin-top:0.4rem">
-            ← Back to Manage Books
-        </a>
     </div>
 
     <div class="form-card" id="formCard">
@@ -463,15 +460,22 @@
             if (!res.ok) throw new Error("Server error");
             const data = await res.json();
 
-            showBanner("success", `"${data.title}" has been updated successfully.`);
             document.getElementById("pageSubtitle").textContent = `Editing: ${data.title}`;
             btn.disabled = false;
             btn.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Saved`;
 
+            const banner = document.getElementById("formBanner");
+            const icon   = document.getElementById("bannerIcon");
+            document.getElementById("bannerMsg").innerHTML =
+                `<span style="flex:1">"${data.title}" has been updated successfully.</span>
+                 <a href="catalog.html?mode=manage" style="font-weight:600;color:inherit;text-decoration:underline;white-space:nowrap;margin-left:1rem">View Books →</a>`;
+            banner.className = "form-banner visible success";
+            icon.innerHTML = `<circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/>`;
+
             setTimeout(() => {
                 btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v14a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save Changes`;
                 document.getElementById("formBanner").className = "form-banner";
-            }, 2500);
+            }, 4000);
 
         } catch (err) {
             console.error(err);
