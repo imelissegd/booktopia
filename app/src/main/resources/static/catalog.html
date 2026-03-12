@@ -57,12 +57,243 @@
       cursor: not-allowed;
     }
 
-    /* List view — override for bookList specifically */
+    .catalog-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      max-width: 1200px;
+      margin: 1.5rem auto 0.75rem;
+      padding: 0 20px;
+      flex-wrap: nowrap;
+    }
+
+    /* Search input — mirrors .input-wrap from auth */
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .search-wrap svg {
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 14px;
+      height: 14px;
+      stroke: var(--muted);
+      fill: none;
+      stroke-width: 1.8;
+      pointer-events: none;
+      transition: stroke 0.2s;
+    }
+
+    .search-wrap:focus-within svg {
+      stroke: var(--teal);
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 0.62rem 1rem 0.62rem 2.3rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      color: var(--charcoal);
+      background: var(--offwhite);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+
+    .search-input::placeholder { color: var(--muted); }
+
+    .search-input:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px var(--teal-glow);
+      background: var(--surface);
+    }
+
+    /* Category select — mirrors .select-field-wrap from page styles */
+    .category-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .category-wrap svg {
+      position: absolute;
+      right: 9px;
+      width: 13px;
+      height: 13px;
+      stroke: var(--muted);
+      fill: none;
+      pointer-events: none;
+    }
+
+    .category-select {
+      appearance: none;
+      padding: 0.62rem 2.2rem 0.62rem 0.9rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      color: var(--charcoal);
+      background: var(--offwhite);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .category-select:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px var(--teal-glow);
+    }
+
+    .results-count {
+      text-align: left;
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin: 0 auto 0.75rem;
+      max-width: 1200px;
+      padding: 0 20px;
+    }
+
+    /* View toggle */
+    .view-toggle {
+      display: flex;
+      gap: 2px;
+      background: var(--offwhite);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 3px;
+      flex-shrink: 0;
+    }
+
+    .view-toggle-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .view-toggle-btn svg {
+      width: 15px;
+      height: 15px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .view-toggle-btn.active {
+      background: var(--surface);
+      color: var(--teal);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+
+    .view-toggle-btn:hover:not(.active) { color: var(--charcoal); }
+
+    /* List view */
     #bookList.list-view {
       display: block;
       max-width: 1200px;
       margin: 0 auto;
       padding: 0 20px;
+    }
+
+    .list-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .list-table thead tr {
+      background: var(--offwhite);
+      border-bottom: 1.5px solid var(--border);
+    }
+
+    .list-table th {
+      padding: 0.7rem 1rem;
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .list-table td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--charcoal);
+      vertical-align: middle;
+      font-size: 0.88rem;
+    }
+
+    .list-table tbody tr:last-child td { border-bottom: none; }
+    .list-table tbody tr:hover { background: #fafafa; }
+
+    .list-cover {
+      width: 36px;
+      height: 48px;
+      object-fit: cover;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      display: block;
+    }
+
+    .list-title  { font-weight: 600; }
+    .list-author { color: var(--muted); font-size: 0.82rem; margin-top: 2px; }
+    .list-price  { font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 500; color: var(--teal); }
+
+    .list-actions { display: flex; gap: 4px; flex-wrap: nowrap; }
+
+    .list-badge {
+      font-size: 0.65rem;
+      padding: 2px 7px;
+      border-radius: 20px;
+      background: var(--offwhite);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      white-space: nowrap;
+      display: inline-block;
+    }
+
+    .list-badges { display: flex; flex-wrap: wrap; gap: 3px; }
+
+    /* Category checkbox dropdown */
+    .cat-checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 12px;
+      font-size: 0.88rem;
+      color: var(--charcoal);
+      cursor: pointer;
+      border-radius: 6px;
+      transition: background 0.12s;
+      user-select: none;
+    }
+    .cat-checkbox-item:hover { background: var(--offwhite); }
+    .cat-checkbox-item input[type="checkbox"] {
+      accent-color: var(--teal);
+      width: 14px;
+      height: 14px;
+      cursor: pointer;
+      flex-shrink: 0;
     }
   </style>
 </head>
@@ -93,20 +324,30 @@
               autocomplete="off"
       >
     </div>
-    <div class="category-wrap">
-      <select id="categoryFilter" class="category-select" onchange="applyFilters()">
-        <option value="">All Categories</option>
-        <option value="FICTION">Fiction</option>
-        <option value="NON_FICTION">Non-Fiction</option>
-        <option value="SCIENCE">Science</option>
-        <option value="TECHNOLOGY">Technology</option>
-        <option value="HISTORY">History</option>
-        <option value="ROMANCE">Romance</option>
-        <option value="FANTASY">Fantasy</option>
-      </select>
-      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="6 9 12 15 18 9"/>
-      </svg>
+    <div class="category-wrap" style="position:relative">
+      <button class="category-select" id="categoryDropdownBtn" onclick="toggleCategoryDropdown(event)" type="button"
+              style="display:flex;align-items:center;gap:6px;cursor:pointer;padding-right:2rem">
+        <span id="categoryBtnLabel">All Categories</span>
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+             style="position:absolute;right:9px;width:13px;height:13px;stroke:var(--muted);fill:none;pointer-events:none">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+      <div id="categoryDropdown" style="display:none;position:absolute;top:calc(100% + 6px);left:0;z-index:200;
+           background:var(--surface);border:1.5px solid var(--border);border-radius:10px;
+           padding:0.6rem 0.25rem;min-width:190px;box-shadow:0 6px 20px rgba(0,0,0,0.1);">
+        <label class="cat-checkbox-item" style="font-weight:600;color:var(--teal)">
+          <input type="checkbox" id="catAll" checked onchange="handleCatAll(this)"> All Categories
+        </label>
+        <div style="height:1px;background:var(--border);margin:0.4rem 0.5rem"></div>
+        <label class="cat-checkbox-item"><input type="checkbox" class="cat-cb" value="FICTION"      onchange="handleCatCheck()"> Fiction</label>
+        <label class="cat-checkbox-item"><input type="checkbox" class="cat-cb" value="NON_FICTION"  onchange="handleCatCheck()"> Non-Fiction</label>
+        <label class="cat-checkbox-item"><input type="checkbox" class="cat-cb" value="SCIENCE"      onchange="handleCatCheck()"> Science</label>
+        <label class="cat-checkbox-item"><input type="checkbox" class="cat-cb" value="TECHNOLOGY"   onchange="handleCatCheck()"> Technology</label>
+        <label class="cat-checkbox-item"><input type="checkbox" class="cat-cb" value="HISTORY"      onchange="handleCatCheck()"> History</label>
+        <label class="cat-checkbox-item"><input type="checkbox" class="cat-cb" value="ROMANCE"      onchange="handleCatCheck()"> Romance</label>
+        <label class="cat-checkbox-item"><input type="checkbox" class="cat-cb" value="FANTASY"      onchange="handleCatCheck()"> Fantasy</label>
+      </div>
     </div>
 
     <!-- Status filter: shown in manage mode only -->
@@ -133,6 +374,13 @@
   </div>
 
   <p id="resultsCount" class="results-count"></p>
+  <p id="categoryHint" class="results-count" style="display:none;margin-top:-0.5rem;margin-bottom:0.75rem">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+         style="width:12px;height:12px;display:inline;vertical-align:middle;margin-right:3px;color:var(--muted)">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    Showing books that match <strong>ANY</strong> of the selected categories
+  </p>
 
   <div id="bookList"></div>
   <div id="pagination" class="pagination"></div>

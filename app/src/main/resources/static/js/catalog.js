@@ -56,8 +56,10 @@ async function fetchBooks() {
 
 // --- Apply search + category filters ---
 function applyFilters() {
-  const query    = document.getElementById("searchInput").value.trim().toLowerCase();
-  const category = document.getElementById("categoryFilter").value;
+  const query = document.getElementById("searchInput").value.trim().toLowerCase();
+  const allCbs = [...document.querySelectorAll(".cat-cb")];
+  const selectedCategories = allCbs.filter(cb => cb.checked).map(cb => cb.value);
+  const allSelected = selectedCategories.length === allCbs.length;
   const isManageMode = new URLSearchParams(window.location.search).get("mode") === "manage";
   const statusEl = document.getElementById("statusFilter");
   const status   = statusEl ? statusEl.value : "all";
@@ -69,11 +71,9 @@ function applyFilters() {
         book.author?.toLowerCase().includes(query);
 
     const matchesCategory =
-        !category ||
-        (book.categories && book.categories.includes(category));
+        allSelected || selectedCategories.length === 0 ||
+        (book.categories && book.categories.some(c => selectedCategories.includes(c)));
 
-    // Browse mode: always hide delisted books
-    // Manage mode: filter by the status dropdown
     const matchesStatus = isManageMode
         ? (status === "active"   ? book.active !== false
             : status === "delisted" ? book.active === false
@@ -84,7 +84,7 @@ function applyFilters() {
   });
 
   const countEl = document.getElementById("resultsCount");
-  if (query || category || (isManageMode && status !== "all")) {
+  if (query || (!allSelected && selectedCategories.length > 0) || (isManageMode && status !== "all")) {
     countEl.textContent = `${filteredBooks.length} result${filteredBooks.length !== 1 ? "s" : ""} found`;
   } else {
     countEl.textContent = "";
@@ -94,6 +94,53 @@ function applyFilters() {
   renderBooksPage(currentPage);
   setupPagination();
 }
+
+// --- Category checkbox dropdown ---
+function toggleCategoryDropdown(e) {
+  e.stopPropagation();
+  const dd = document.getElementById("categoryDropdown");
+  dd.style.display = dd.style.display === "none" ? "block" : "none";
+}
+
+function handleCatAll(cb) {
+  // Ticking All → check all individuals. Unticking All → uncheck all individuals.
+  document.querySelectorAll(".cat-cb").forEach(c => c.checked = cb.checked);
+  updateCategoryBtnLabel();
+  applyFilters();
+}
+
+function handleCatCheck() {
+  const allBoxes = [...document.querySelectorAll(".cat-cb")];
+  const checked  = allBoxes.filter(c => c.checked);
+  // All checkbox mirrors whether every individual is checked
+  document.getElementById("catAll").checked = checked.length === allBoxes.length;
+  updateCategoryBtnLabel();
+  applyFilters();
+}
+
+function updateCategoryBtnLabel() {
+  const allBoxes = [...document.querySelectorAll(".cat-cb")];
+  const checked  = allBoxes.filter(c => c.checked);
+  const label    = document.getElementById("categoryBtnLabel");
+  const hint     = document.getElementById("categoryHint");
+
+  if (checked.length === 0 || checked.length === allBoxes.length) {
+    label.textContent = "All Categories";
+  } else if (checked.length === 1) {
+    label.textContent = checked[0].closest("label").textContent.trim();
+  } else {
+    label.textContent = `${checked.length} Categories`;
+  }
+  if (hint) hint.style.display = checked.length >= 2 && checked.length < allBoxes.length ? "block" : "none";
+}
+
+document.addEventListener("click", (e) => {
+  const dd  = document.getElementById("categoryDropdown");
+  const btn = document.getElementById("categoryDropdownBtn");
+  if (dd && !dd.contains(e.target) && e.target !== btn && !btn?.contains(e.target)) {
+    dd.style.display = "none";
+  }
+});
 
 // --- Render books for current page ---
 function renderBooksPage(page) {
