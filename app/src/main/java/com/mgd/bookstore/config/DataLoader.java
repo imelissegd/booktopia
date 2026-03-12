@@ -347,6 +347,7 @@ public class DataLoader {
         b.setPrice(new BigDecimal(price));
         b.setDescription(description);
         b.setCategories(categories);
+        b.setActive(true);
         return b;
     }
 }

@@ -17,7 +17,13 @@ public class BookService {
         this.bookRepository = bookRepository;
     }
 
+    // Browse endpoint: only active books
     public List<Book> getAllBooks() {
+        return bookRepository.findByActive(true);
+    }
+
+    // Admin endpoint: all books regardless of status
+    public List<Book> getAllBooksAdmin() {
         return bookRepository.findAll();
     }
 
@@ -68,5 +74,35 @@ public class BookService {
 
     public Optional<Book> getBookById(Long id) {
         return bookRepository.findById(id);
+    }
+
+    public Optional<Book> updateBook(Long id, Book updated) {
+        return bookRepository.findById(id).map(existing -> {
+            existing.setTitle(updated.getTitle());
+            existing.setAuthor(updated.getAuthor());
+            existing.setPrice(updated.getPrice());
+            existing.setDescription(updated.getDescription());
+            existing.setCategories(updated.getCategories());
+            if (updated.getImage() != null) existing.setImage(updated.getImage());
+            return bookRepository.save(existing);
+        });
+    }
+
+    public void deleteBook(Long id) {
+        bookRepository.deleteById(id);
+    }
+
+    public Optional<Book> delistBook(Long id) {
+        return bookRepository.findById(id).map(book -> {
+            book.setActive(false);
+            return bookRepository.save(book);
+        });
+    }
+
+    public Optional<Book> relistBook(Long id) {
+        return bookRepository.findById(id).map(book -> {
+            book.setActive(true);
+            return bookRepository.save(book);
+        });
     }
 }

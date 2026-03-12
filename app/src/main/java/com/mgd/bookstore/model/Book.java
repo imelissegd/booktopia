@@ -24,6 +24,12 @@ public class Book {
     @Column(length = 2000)
     private String description;
 
+    @Column(length = 1000)
+    private String image;
+
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    private boolean active = true;
+
     // Store multiple categories as Enum
     @ElementCollection(targetClass = Category.class)
     @Enumerated(EnumType.STRING)
@@ -73,6 +79,22 @@ public class Book {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
     public List<Category> getCategories() {

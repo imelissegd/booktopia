@@ -8,6 +8,8 @@ import java.util.List;
 public interface BookRepository extends JpaRepository<Book, Long> {
     List<Book> findByTitleContainingIgnoreCase(String title);
     List<Book> findByAuthorContainingIgnoreCase(String author);
-    // For filtering by category enum
     List<Book> findByCategoriesContaining(Category category);
+    List<Book> findByActive(boolean active);
+    List<Book> findByActiveAndTitleContainingIgnoreCase(boolean active, String title);
+    List<Book> findByActiveAndAuthorContainingIgnoreCase(boolean active, String author);
 }

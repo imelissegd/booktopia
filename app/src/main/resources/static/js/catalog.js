@@ -2,9 +2,10 @@ console.log("catalog.js loaded");
 
 const booksPerPage = 10;
 let currentPage = 1;
-let books = [];          // all books from API
-let filteredBooks = [];  // books after search + category filter
-let booksMap = {};       // books indexed by id for quick lookup
+let currentView = "grid"; // "grid" | "list"
+let books = [];
+let filteredBooks = [];
+let booksMap = {};
 let loggedInUser = null;
 
 // --- On page load ---
@@ -14,14 +15,36 @@ document.addEventListener("DOMContentLoaded", async () => {
     catch { return null; }
   })();
 
+  const isAdmin = loggedInUser?.role === "ROLE_ADMIN";
+  const isManageMode = new URLSearchParams(window.location.search).get("mode") === "manage";
+
+  if (isAdmin && isManageMode) {
+    document.querySelector(".catalog-main h1").textContent = "Manage Books";
+    document.getElementById("addBookBtn").style.display = "inline-flex";
+    document.getElementById("statusFilterWrap").style.display = "";
+    setView("list", false);
+  }
+
   await fetchBooks();
   applyFilters();
 });
 
+// --- View toggle ---
+function setView(view, rerender = true) {
+  currentView = view;
+  document.getElementById("gridViewBtn").classList.toggle("active", view === "grid");
+  document.getElementById("listViewBtn").classList.toggle("active", view === "list");
+  if (rerender) renderBooksPage(currentPage);
+}
+
 // --- Fetch all books ---
 async function fetchBooks() {
   try {
-    const res = await fetch("http://localhost:8080/api/books");
+    const isManageMode = new URLSearchParams(window.location.search).get("mode") === "manage";
+    const url = isManageMode
+        ? "http://localhost:8080/api/books/admin/all"
+        : "http://localhost:8080/api/books";
+    const res = await fetch(url, { credentials: "include" });
     if (!res.ok) throw new Error("Failed to fetch books");
     books = await res.json();
     filteredBooks = [...books];
@@ -33,8 +56,11 @@ async function fetchBooks() {
 
 // --- Apply search + category filters ---
 function applyFilters() {
-  const query = document.getElementById("searchInput").value.trim().toLowerCase();
+  const query    = document.getElementById("searchInput").value.trim().toLowerCase();
   const category = document.getElementById("categoryFilter").value;
+  const isManageMode = new URLSearchParams(window.location.search).get("mode") === "manage";
+  const statusEl = document.getElementById("statusFilter");
+  const status   = statusEl ? statusEl.value : "all";
 
   filteredBooks = books.filter(book => {
     const matchesSearch =
@@ -46,11 +72,19 @@ function applyFilters() {
         !category ||
         (book.categories && book.categories.includes(category));
 
-    return matchesSearch && matchesCategory;
+    // Browse mode: always hide delisted books
+    // Manage mode: filter by the status dropdown
+    const matchesStatus = isManageMode
+        ? (status === "active"   ? book.active !== false
+            : status === "delisted" ? book.active === false
+                : true)
+        : book.active !== false;
+
+    return matchesSearch && matchesCategory && matchesStatus;
   });
 
   const countEl = document.getElementById("resultsCount");
-  if (query || category) {
+  if (query || category || (isManageMode && status !== "all")) {
     countEl.textContent = `${filteredBooks.length} result${filteredBooks.length !== 1 ? "s" : ""} found`;
   } else {
     countEl.textContent = "";
@@ -67,7 +101,8 @@ function renderBooksPage(page) {
   bookList.innerHTML = "";
 
   if (!filteredBooks.length) {
-    bookList.innerHTML = "<p>No books found.</p>";
+    bookList.className = "";
+    bookList.innerHTML = "<p style='text-align:center;color:var(--muted);padding:2rem'>No books found.</p>";
     return;
   }
 
@@ -75,15 +110,51 @@ function renderBooksPage(page) {
   const end = start + booksPerPage;
   const pageBooks = filteredBooks.slice(start, end);
 
-  pageBooks.forEach(book => {
-    booksMap[book.id] = book; // cache for viewBookModal
+  pageBooks.forEach(book => { booksMap[book.id] = book; });
 
+  if (currentView === "list") {
+    renderListView(bookList, pageBooks);
+  } else {
+    renderGridView(bookList, pageBooks);
+  }
+}
+
+// --- Grid view ---
+function renderGridView(bookList, pageBooks) {
+  bookList.className = "";
+  const isManageMode = new URLSearchParams(window.location.search).get("mode") === "manage";
+  const isAdmin = loggedInUser?.role === "ROLE_ADMIN";
+
+  pageBooks.forEach(book => {
     const div = document.createElement("div");
     div.className = "book";
+    if (book.active === false) div.style.opacity = "0.5";
 
     const categoryBadges = (book.categories || [])
         .map(cat => `<span class="category-badge">${formatCategory(cat)}</span>`)
         .join("");
+
+    let actions = "";
+    if (isManageMode) {
+      const delistRelist = book.active !== false
+          ? `<button onclick="delistBook(${book.id})" style="background:var(--error);color:#fff">Delist</button>`
+          : `<button onclick="relistBook(${book.id})" style="background:var(--teal);color:#fff">Relist</button>`;
+      actions = `
+        <button class="btn-view-book" onclick="openViewBook(${book.id})">View Book</button>
+        <div class="book-action-row">
+          <button onclick="editBook(${book.id})" style="background:var(--teal);color:#fff">Edit</button>
+          ${delistRelist}
+        </div>`;
+    } else if (isAdmin) {
+      actions = `<button class="btn-view-book" onclick="openViewBook(${book.id})">View Book</button>`;
+    } else {
+      actions = `
+        <button class="btn-view-book" onclick="openViewBook(${book.id})">View Book</button>
+        <div class="book-action-row">
+          <button onclick="${loggedInUser ? `openAddToCart(${book.id})` : 'openLoginPrompt()'}">Add to Cart</button>
+          <button onclick="${loggedInUser ? `openCheckout(${book.id})` : 'openLoginPrompt()'}">Buy Now</button>
+        </div>`;
+    }
 
     div.innerHTML = `
       <img src="${book.image || './images/book-placeholder.svg'}" alt="${book.title}">
@@ -91,19 +162,80 @@ function renderBooksPage(page) {
       <p>${book.author || ''}</p>
       <p>₱${book.price}</p>
       ${categoryBadges ? `<div class="category-badges">${categoryBadges}</div>` : ""}
-      <div class="book-actions">
-        <button class="btn-view-book" onclick="openViewBook(${book.id})">View Book</button>
-        ${loggedInUser?.role !== "ROLE_ADMIN" ? `
-          <div class="book-action-row">
-            <button onclick="${loggedInUser ? `openAddToCart(${book.id})` : 'openLoginPrompt()'}">Add to Cart</button>
-            <button onclick="${loggedInUser ? `openCheckout(${book.id})` : 'openLoginPrompt()'}">Buy Now</button>
-          </div>
-        ` : ''}
-      </div>
+      <div class="book-actions">${actions}</div>
     `;
 
     bookList.appendChild(div);
   });
+}
+
+// --- List view ---
+function renderListView(bookList, pageBooks) {
+  bookList.className = "list-view";
+  const isManageMode = new URLSearchParams(window.location.search).get("mode") === "manage";
+  const isAdmin = loggedInUser?.role === "ROLE_ADMIN";
+
+  const rows = pageBooks.map(book => {
+    const badges = (book.categories || [])
+        .map(cat => `<span class="list-badge">${formatCategory(cat)}</span>`)
+        .join("");
+
+    let actions = "";
+    if (isManageMode) {
+      const delistRelist = book.active !== false
+          ? `<button class="tbl-btn tbl-btn--danger" onclick="delistBook(${book.id})">Delist</button>`
+          : `<button class="tbl-btn tbl-btn--ghost" style="border-color:var(--teal);color:var(--teal)" onclick="relistBook(${book.id})">Relist</button>`;
+      actions = `
+        <button class="tbl-btn tbl-btn--ghost" onclick="openViewBook(${book.id})">View</button>
+        <button class="tbl-btn tbl-btn--ghost" onclick="editBook(${book.id})">Edit</button>
+        ${delistRelist}`;
+    } else if (isAdmin) {
+      actions = `<button class="tbl-btn tbl-btn--ghost" onclick="openViewBook(${book.id})">View</button>`;
+    } else {
+      actions = loggedInUser
+          ? `<button class="tbl-btn tbl-btn--ghost" onclick="openViewBook(${book.id})">View</button>
+           <button class="tbl-btn tbl-btn--ghost" onclick="openAddToCart(${book.id})">Add to Cart</button>
+           <button class="tbl-btn tbl-btn--ghost" style="border-color:var(--amber);color:var(--amber-dark)" onclick="openCheckout(${book.id})">Buy Now</button>`
+          : `<button class="tbl-btn tbl-btn--ghost" onclick="openViewBook(${book.id})">View</button>
+           <button class="tbl-btn tbl-btn--ghost" onclick="openLoginPrompt()">Add to Cart</button>
+           <button class="tbl-btn tbl-btn--ghost" onclick="openLoginPrompt()">Buy Now</button>`;
+    }
+
+    const statusCell = isManageMode
+        ? `<td>${book.active !== false
+            ? `<span class="list-badge" style="border-color:var(--teal);color:var(--teal)">Active</span>`
+            : `<span class="list-badge" style="border-color:var(--error);color:var(--error)">Delisted</span>`
+        }</td>`
+        : "";
+
+    return `
+      <tr style="${book.active === false ? 'opacity:0.5' : ''}">
+        <td><img class="list-cover" src="${book.image || './images/book-placeholder.svg'}" alt="${book.title}"></td>
+        <td>
+          <div class="list-title">${book.title}</div>
+          <div class="list-author">${book.author || '—'}</div>
+        </td>
+        <td class="list-price">₱${book.price}</td>
+        <td><div class="list-badges">${badges || '—'}</div></td>
+        ${statusCell}
+        <td><div class="list-actions">${actions}</div></td>
+      </tr>`;
+  }).join("");
+
+  bookList.innerHTML = `
+    <table class="list-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Title / Author</th>
+          <th>Price</th>
+          <th>Categories</th>
+          ${isManageMode ? '<th>Status</th>' : ''}
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
 }
 
 // --- Format category enum to readable label ---
@@ -270,7 +402,96 @@ function buyNow(bookId) {
 
 // Exposed for navbar.js admin "Add Book" button
 function openCreateBookModal() {
-  if (typeof window._openCreateBookModal === "function") {
-    window._openCreateBookModal();
-  }
+  window.location.href = "add-book.html";
+}
+
+// --- Admin: Delist book ---
+function delistBook(bookId) {
+  fetch(`http://localhost:8080/api/books/${bookId}/delist`, { method: "PATCH", credentials: "include" })
+      .then(res => { if (!res.ok) throw new Error(); return res.json(); })
+      .then(updated => {
+        const idx = books.findIndex(b => b.id === bookId);
+        if (idx !== -1) books[idx] = updated;
+        booksMap[bookId] = updated;
+        applyFilters();
+        showCatalogToast(`"${updated.title}" has been delisted.`, "success");
+      })
+      .catch(() => showCatalogToast("Failed to delist book.", "error"));
+}
+
+// --- Admin: Relist book ---
+function relistBook(bookId) {
+  fetch(`http://localhost:8080/api/books/${bookId}/relist`, { method: "PATCH", credentials: "include" })
+      .then(res => { if (!res.ok) throw new Error(); return res.json(); })
+      .then(updated => {
+        const idx = books.findIndex(b => b.id === bookId);
+        if (idx !== -1) books[idx] = updated;
+        booksMap[bookId] = updated;
+        applyFilters();
+        showCatalogToast(`"${updated.title}" has been relisted.`, "success");
+      })
+      .catch(() => showCatalogToast("Failed to relist book.", "error"));
+}
+
+// --- Admin: Edit book ---
+function editBook(bookId) {
+  window.location.href = `edit-book.html?id=${bookId}`;
+}
+
+// --- Admin: Delete book ---
+function deleteBook(bookId) {
+  const book = booksMap[bookId];
+  const title = book?.title ?? `Book #${bookId}`;
+
+  document.getElementById("modalContainer").innerHTML = `
+    <div class="modal-overlay" onclick="closeModal()">
+      <div class="modal" style="text-align:center">
+        <div style="display:flex;justify-content:center;margin-bottom:0.75rem;color:var(--error)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="36" height="36" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <h2 style="font-family:'DM Serif Display',serif;margin-bottom:0.5rem">Delete Book?</h2>
+        <p style="color:var(--muted);font-size:0.88rem;margin-bottom:1.2rem">
+          "<strong>${title}</strong>" will be permanently removed from the catalog.
+        </p>
+        <div class="modal-action-row">
+          <button class="modal-btn-ghost" onclick="closeModal()">Cancel</button>
+          <button style="flex:1;padding:8px 12px;background:var(--error);color:#fff;border:none;border-radius:5px;font-weight:600;font-size:0.82rem;cursor:pointer"
+            onclick="confirmDeleteBook(${bookId})">Yes, Delete</button>
+        </div>
+      </div>
+    </div>`;
+  document.querySelector("#modalContainer .modal").addEventListener("click", e => e.stopPropagation());
+}
+
+function confirmDeleteBook(bookId) {
+  fetch(`http://localhost:8080/api/books/${bookId}`, { method: "DELETE", credentials: "include" })
+      .then(res => {
+        if (!res.ok) throw new Error("Delete failed");
+        books = books.filter(b => b.id !== bookId);
+        filteredBooks = filteredBooks.filter(b => b.id !== bookId);
+        delete booksMap[bookId];
+        closeModal();
+        renderBooksPage(currentPage);
+        setupPagination();
+        showCatalogToast("Book deleted successfully.", "success");
+      })
+      .catch(err => {
+        console.error(err);
+        closeModal();
+        alert("Failed to delete book. Please try again.");
+      });
+}
+
+function showCatalogToast(msg, type = "success") {
+  const toast = document.createElement("div");
+  toast.className = `toast toast--${type}`;
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.classList.add("toast--visible"), 10);
+  setTimeout(() => {
+    toast.classList.remove("toast--visible");
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
 }

@@ -23,6 +23,12 @@ public class BookController {
         return bookService.getAllBooks();
     }
 
+    // Admin: fetch all books including delisted
+    @GetMapping("/admin/all")
+    public List<Book> getAllBooksAdmin() {
+        return bookService.getAllBooksAdmin();
+    }
+
     /**
      * Search by title and/or author, and optionally filter by category.
      * Examples:
@@ -58,6 +64,36 @@ public class BookController {
     @GetMapping("/{id}")
     public ResponseEntity<Book> getBookById(@PathVariable Long id) {
         return bookService.getBookById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Book> updateBook(@PathVariable Long id, @RequestBody Book book) {
+        return bookService.updateBook(id, book)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteBook(@PathVariable Long id) {
+        if (bookService.getBookById(id).isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        bookService.deleteBook(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/delist")
+    public ResponseEntity<Book> delistBook(@PathVariable Long id) {
+        return bookService.delistBook(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PatchMapping("/{id}/relist")
+    public ResponseEntity<Book> relistBook(@PathVariable Long id) {
+        return bookService.relistBook(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }

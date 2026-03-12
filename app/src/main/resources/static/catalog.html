@@ -155,6 +155,121 @@
       color: var(--muted);
       margin-bottom: 1rem;
     }
+
+    /* View toggle */
+    .view-toggle {
+      display: flex;
+      gap: 2px;
+      background: var(--offwhite);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 3px;
+      flex-shrink: 0;
+    }
+
+    .view-toggle-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .view-toggle-btn svg {
+      width: 15px;
+      height: 15px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .view-toggle-btn.active {
+      background: var(--surface);
+      color: var(--teal);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+
+    .view-toggle-btn:hover:not(.active) { color: var(--charcoal); }
+
+    /* List view */
+    #bookList.list-view {
+      display: block;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    .list-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .list-table thead tr {
+      background: var(--offwhite);
+      border-bottom: 1.5px solid var(--border);
+    }
+
+    .list-table th {
+      padding: 0.7rem 1rem;
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .list-table td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--charcoal);
+      vertical-align: middle;
+      font-size: 0.88rem;
+    }
+
+    .list-table tbody tr:last-child td { border-bottom: none; }
+    .list-table tbody tr:hover { background: #fafafa; }
+
+    .list-cover {
+      width: 36px;
+      height: 48px;
+      object-fit: cover;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      display: block;
+    }
+
+    .list-title  { font-weight: 600; }
+    .list-author { color: var(--muted); font-size: 0.82rem; margin-top: 2px; }
+    .list-price  { font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 500; color: var(--teal); }
+
+    .list-actions { display: flex; gap: 4px; flex-wrap: nowrap; }
+
+    .list-badge {
+      font-size: 0.65rem;
+      padding: 2px 7px;
+      border-radius: 20px;
+      background: var(--offwhite);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      white-space: nowrap;
+      display: inline-block;
+    }
+
+    .list-badges { display: flex; flex-wrap: wrap; gap: 3px; }
   </style>
 </head>
 <body class="catalog-body">
@@ -162,7 +277,13 @@
 <div id="navbar"></div>
 
 <main class="catalog-main">
-  <h1>Browse Books</h1>
+  <div style="display:flex;align-items:center;justify-content:space-between;max-width:1200px;margin:0 auto 0.25rem;padding:0 20px">
+    <h1 style="margin:0">Browse Books</h1>
+    <a id="addBookBtn" href="add-book.html" class="btn-action btn-action--primary" style="display:none;text-decoration:none">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add Book
+    </a>
+  </div>
 
   <div class="catalog-controls">
     <div class="search-wrap">
@@ -193,6 +314,28 @@
         <polyline points="6 9 12 15 18 9"/>
       </svg>
     </div>
+
+    <!-- Status filter: shown in manage mode only -->
+    <div class="category-wrap" id="statusFilterWrap" style="display:none">
+      <select id="statusFilter" class="category-select" onchange="applyFilters()">
+        <option value="all">All</option>
+        <option value="active">Active</option>
+        <option value="delisted">Delisted</option>
+      </select>
+      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    </div>
+
+    <!-- View toggle -->
+    <div class="view-toggle">
+      <button class="view-toggle-btn active" id="gridViewBtn" title="Grid view" onclick="setView('grid')">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      </button>
+      <button class="view-toggle-btn" id="listViewBtn" title="List view" onclick="setView('list')">
+        <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      </button>
+    </div>
   </div>
 
   <p id="resultsCount" class="results-count"></p>
@@ -206,6 +349,5 @@
 <script src="/js/navbar.js"></script>
 <script src="/js/book-modal.js"></script>
 <script src="/js/catalog.js"></script>
-<script src="/js/create-book.js"></script>
 </body>
 </html>

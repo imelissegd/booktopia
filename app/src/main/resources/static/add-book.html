@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Book — Booktopia</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .add-book-main {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 2.5rem 24px 4rem;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            font-family: 'DM Serif Display', serif;
+            font-size: 2rem;
+            font-weight: 400;
+            color: var(--charcoal);
+            letter-spacing: -0.02em;
+            margin: 0 0 0.3rem;
+        }
+
+        .page-header p {
+            font-size: 0.88rem;
+            color: var(--muted);
+            margin: 0;
+        }
+
+        /* Form card */
+        .form-card {
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        .form-section {
+            padding: 1.6rem 1.8rem;
+            border-bottom: 1.5px solid var(--border);
+        }
+
+        .form-section:last-child {
+            border-bottom: none;
+        }
+
+        .form-section-title {
+            font-size: 0.68rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin: 0 0 1.1rem;
+        }
+
+        /* Fields */
+        .field-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        @media (max-width: 560px) {
+            .field-row { grid-template-columns: 1fr; }
+        }
+
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.38rem;
+            margin-bottom: 1rem;
+        }
+
+        .field-group:last-child { margin-bottom: 0; }
+
+        .field-group label {
+            font-size: 0.68rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--charcoal);
+        }
+
+        .field-group input,
+        .field-group textarea {
+            width: 100%;
+            padding: 0.68rem 0.9rem;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            color: var(--charcoal);
+            background: var(--offwhite);
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+            box-sizing: border-box;
+        }
+
+        .field-group textarea {
+            resize: vertical;
+            min-height: 100px;
+            line-height: 1.55;
+        }
+
+        .field-group input:focus,
+        .field-group textarea:focus {
+            border-color: var(--teal);
+            box-shadow: 0 0 0 3px var(--teal-glow);
+            background: var(--surface);
+        }
+
+        .field-group input.error,
+        .field-group textarea.error {
+            border-color: var(--error);
+            box-shadow: 0 0 0 3px rgba(192,57,43,0.1);
+        }
+
+        .field-error {
+            font-size: 0.72rem;
+            color: var(--error);
+            margin-top: 2px;
+            display: none;
+        }
+
+        .field-error.visible { display: block; }
+
+        .field-hint {
+            font-size: 0.72rem;
+            color: var(--muted);
+        }
+
+        /* Categories multi-select */
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .category-chip {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            background: var(--offwhite);
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s;
+            user-select: none;
+        }
+
+        .category-chip input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+            accent-color: var(--teal);
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        .category-chip span {
+            font-size: 0.8rem;
+            color: var(--charcoal);
+            font-weight: 500;
+        }
+
+        .category-chip:hover {
+            border-color: var(--teal);
+            background: rgba(0,137,123,0.04);
+        }
+
+        .category-chip.checked {
+            border-color: var(--teal);
+            background: rgba(0,137,123,0.07);
+        }
+
+        .category-chip.checked span { color: var(--teal); }
+
+        /* Image preview */
+        .image-preview-wrap {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .image-preview {
+            width: 80px;
+            height: 100px;
+            border-radius: 8px;
+            border: 1.5px solid var(--border);
+            object-fit: cover;
+            background: var(--offwhite);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--muted);
+            overflow: hidden;
+        }
+
+        .image-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+
+        .image-preview svg {
+            width: 28px;
+            height: 28px;
+            stroke: var(--border);
+            fill: none;
+            stroke-width: 1.4;
+        }
+
+        .image-preview-input { flex: 1; }
+
+        /* Form footer */
+        .form-footer {
+            padding: 1.2rem 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            background: var(--offwhite);
+            border-top: 1.5px solid var(--border);
+        }
+
+        .btn-cancel {
+            padding: 0.7rem 1.3rem;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--charcoal);
+            background: transparent;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: border-color 0.2s, color 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .btn-cancel:hover {
+            border-color: var(--charcoal);
+        }
+
+        .btn-submit {
+            padding: 0.7rem 1.6rem;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            color: #fff;
+            background: var(--teal);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .btn-submit:hover {
+            background: var(--teal-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(0,137,123,0.28);
+        }
+
+        .btn-submit:active { transform: translateY(0); box-shadow: none; }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-submit svg {
+            width: 14px;
+            height: 14px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        /* Success / error banner */
+        .form-banner {
+            display: none;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.85rem 1.8rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            border-top: 1.5px solid var(--border);
+        }
+
+        .form-banner.visible { display: flex; }
+        .form-banner.success { background: rgba(46,125,82,0.08); color: var(--success); }
+        .form-banner.error   { background: rgba(192,57,43,0.08); color: var(--error); }
+
+        .form-banner svg {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body class="page-body">
+
+<main class="add-book-main">
+    <div class="page-header">
+        <h1>Add Book</h1>
+        <p>Add a new title to the catalog.</p>
+    </div>
+
+    <div class="form-card">
+
+        <!-- Basic Info -->
+        <div class="form-section">
+            <p class="form-section-title">Basic Information</p>
+
+            <div class="field-row">
+                <div class="field-group">
+                    <label for="bookTitle">Title <span style="color:var(--error)">*</span></label>
+                    <input type="text" id="bookTitle" placeholder="e.g. The Great Gatsby" autocomplete="off">
+                    <span class="field-error" id="titleError">Title is required.</span>
+                </div>
+                <div class="field-group">
+                    <label for="bookAuthor">Author <span style="color:var(--error)">*</span></label>
+                    <input type="text" id="bookAuthor" placeholder="e.g. F. Scott Fitzgerald" autocomplete="off">
+                    <span class="field-error" id="authorError">Author is required.</span>
+                </div>
+            </div>
+
+            <div class="field-row">
+                <div class="field-group">
+                    <label for="bookPrice">Price (₱) <span style="color:var(--error)">*</span></label>
+                    <input type="number" id="bookPrice" placeholder="0.00" step="0.01" min="0">
+                    <span class="field-error" id="priceError">A valid price is required.</span>
+                </div>
+                <div class="field-group">
+                    <label for="bookStock">Stock Quantity</label>
+                    <input type="number" id="bookStock" placeholder="0" min="0">
+                    <span class="field-hint">Leave blank if not tracking stock.</span>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <label for="bookDescription">Description</label>
+                <textarea id="bookDescription" placeholder="Write a short synopsis or description of the book…"></textarea>
+            </div>
+        </div>
+
+        <!-- Cover Image -->
+        <div class="form-section">
+            <p class="form-section-title">Cover Image</p>
+            <div class="image-preview-wrap">
+                <div class="image-preview" id="imagePreview">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    <img id="previewImg" alt="Cover preview">
+                </div>
+                <div class="image-preview-input field-group" style="margin-bottom:0">
+                    <label for="bookImage">Image URL</label>
+                    <input type="url" id="bookImage" placeholder="https://example.com/cover.jpg" oninput="previewImage(this.value)">
+                    <span class="field-hint">Paste a direct URL to the book cover image.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Categories -->
+        <div class="form-section">
+            <p class="form-section-title">Categories <span style="color:var(--error)">*</span></p>
+            <div class="category-grid" id="categoryGrid">
+                <!-- populated by JS -->
+            </div>
+            <span class="field-error" id="categoryError" style="margin-top:0.5rem">Select at least one category.</span>
+        </div>
+
+        <!-- Banner -->
+        <div class="form-banner" id="formBanner">
+            <svg id="bannerIcon" viewBox="0 0 24 24"></svg>
+            <span id="bannerMsg"></span>
+        </div>
+
+        <!-- Footer -->
+        <div class="form-footer">
+            <a class="btn-cancel" href="admin-dashboard.html">Cancel</a>
+            <button class="btn-submit" id="submitBtn" onclick="submitBook()">
+                <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Add Book
+            </button>
+        </div>
+
+    </div>
+</main>
+
+<script src="/js/navbar.js"></script>
+<script>
+    const CATEGORIES = [
+        { value: "FICTION",      label: "Fiction" },
+        { value: "NON_FICTION",  label: "Non-Fiction" },
+        { value: "SCIENCE",      label: "Science" },
+        { value: "TECHNOLOGY",   label: "Technology" },
+        { value: "HISTORY",      label: "History" },
+        { value: "ROMANCE",      label: "Romance" },
+        { value: "FANTASY",      label: "Fantasy" },
+    ];
+
+    // Build category chips
+    const grid = document.getElementById("categoryGrid");
+    CATEGORIES.forEach(cat => {
+        const chip = document.createElement("label");
+        chip.className = "category-chip";
+        chip.innerHTML = `
+      <input type="checkbox" value="${cat.value}" onchange="toggleChip(this)">
+      <span>${cat.label}</span>`;
+        grid.appendChild(chip);
+    });
+
+    function toggleChip(checkbox) {
+        checkbox.closest(".category-chip").classList.toggle("checked", checkbox.checked);
+    }
+
+    // Image preview
+    function previewImage(url) {
+        const img = document.getElementById("previewImg");
+        const placeholder = document.querySelector("#imagePreview svg");
+        if (!url) {
+            img.style.display = "none";
+            placeholder.style.display = "";
+            return;
+        }
+        img.src = url;
+        img.onload = () => { img.style.display = "block"; placeholder.style.display = "none"; };
+        img.onerror = () => { img.style.display = "none"; placeholder.style.display = ""; };
+    }
+
+    // Validation helpers
+    function setError(inputId, errorId, show) {
+        const input = document.getElementById(inputId);
+        const error = document.getElementById(errorId);
+        if (show) {
+            input?.classList.add("error");
+            error?.classList.add("visible");
+        } else {
+            input?.classList.remove("error");
+            error?.classList.remove("visible");
+        }
+    }
+
+    function showBanner(type, msg) {
+        const banner = document.getElementById("formBanner");
+        const icon   = document.getElementById("bannerIcon");
+        const text   = document.getElementById("bannerMsg");
+        banner.className = `form-banner visible ${type}`;
+        text.textContent = msg;
+        icon.innerHTML = type === "success"
+            ? `<circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/>`
+            : `<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>`;
+    }
+
+    // Submit
+    async function submitBook() {
+        // Clear previous errors
+        ["bookTitle","bookAuthor","bookPrice"].forEach(id => {
+            document.getElementById(id)?.classList.remove("error");
+        });
+        document.querySelectorAll(".field-error").forEach(el => el.classList.remove("visible"));
+        document.getElementById("formBanner").className = "form-banner";
+
+        const title       = document.getElementById("bookTitle").value.trim();
+        const author      = document.getElementById("bookAuthor").value.trim();
+        const price       = parseFloat(document.getElementById("bookPrice").value);
+        const description = document.getElementById("bookDescription").value.trim();
+        const image       = document.getElementById("bookImage").value.trim();
+        const stock       = document.getElementById("bookStock").value;
+        const selectedCats = Array.from(document.querySelectorAll("#categoryGrid input:checked")).map(cb => cb.value);
+
+        let valid = true;
+        if (!title)             { setError("bookTitle",  "titleError",    true); valid = false; }
+        if (!author)            { setError("bookAuthor", "authorError",   true); valid = false; }
+        if (!price || price < 0){ setError("bookPrice",  "priceError",    true); valid = false; }
+        if (!selectedCats.length) {
+            document.getElementById("categoryError").classList.add("visible");
+            valid = false;
+        }
+
+        if (!valid) return;
+
+        const btn = document.getElementById("submitBtn");
+        btn.disabled = true;
+        btn.innerHTML = `<svg viewBox="0 0 24 24" style="animation:spin 0.8s linear infinite"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Saving…`;
+
+        const payload = { title, author, price, description, categories: selectedCats };
+        if (image) payload.image = image;
+        if (stock !== "") payload.stock = parseInt(stock);
+
+        try {
+            const res = await fetch("http://localhost:8080/api/books", {
+                method: "POST",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) throw new Error("Server error");
+            const data = await res.json();
+
+            showBanner("success", `"${data.title}" has been added to the catalog.`);
+            btn.disabled = false;
+            btn.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Book Added`;
+
+            // Reset after 2s and offer to add another
+            setTimeout(() => {
+                document.getElementById("bookTitle").value = "";
+                document.getElementById("bookAuthor").value = "";
+                document.getElementById("bookPrice").value = "";
+                document.getElementById("bookStock").value = "";
+                document.getElementById("bookDescription").value = "";
+                document.getElementById("bookImage").value = "";
+                previewImage("");
+                document.querySelectorAll("#categoryGrid input").forEach(cb => {
+                    cb.checked = false;
+                    cb.closest(".category-chip").classList.remove("checked");
+                });
+                btn.innerHTML = `<svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Book`;
+                document.getElementById("formBanner").className = "form-banner";
+            }, 2500);
+
+        } catch (err) {
+            console.error(err);
+            showBanner("error", "Failed to add book. Please check your inputs and try again.");
+            btn.disabled = false;
+            btn.innerHTML = `<svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Book`;
+        }
+    }
+</script>
+
+<style>
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+</style>
+
+</body>
+</html>
