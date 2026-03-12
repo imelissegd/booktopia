@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add User — Booktopia</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .form-page-main {
+      max-width: 580px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 4rem;
+    }
+
+    .form-page-header { margin-bottom: 2rem; }
+
+    .form-page-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2rem;
+      font-weight: 400;
+      color: var(--charcoal);
+      letter-spacing: -0.02em;
+      margin: 0 0 0.3rem;
+    }
+
+    .form-page-subtitle { font-size: 0.85rem; color: var(--muted); margin: 0; }
+
+    .form-section {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .form-section-title {
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0 0 1.1rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1.5px solid var(--border);
+    }
+
+    .field-group { margin-bottom: 1rem; }
+    .field-group:last-child { margin-bottom: 0; }
+
+    .field-group label {
+      display: block;
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--charcoal);
+      margin-bottom: 0.38rem;
+    }
+
+    .field-group label span { color: var(--error); margin-left: 2px; }
+
+    .field-input {
+      width: 100%;
+      padding: 0.72rem 1rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      color: var(--charcoal);
+      background: var(--offwhite);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+
+    .field-input:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px var(--teal-glow);
+      background: var(--surface);
+    }
+
+    .field-input.error { border-color: var(--error); box-shadow: 0 0 0 3px rgba(192,57,43,0.12); }
+
+    .field-select-wrap { position: relative; }
+    .field-select-wrap svg {
+      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+      width: 13px; height: 13px; stroke: var(--muted); fill: none; pointer-events: none;
+    }
+
+    .field-select {
+      width: 100%;
+      padding: 0.72rem 2.2rem 0.72rem 1rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      color: var(--charcoal);
+      background: var(--offwhite);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .field-select:focus { border-color: var(--teal); box-shadow: 0 0 0 3px var(--teal-glow); }
+
+    .field-error {
+      font-size: 0.72rem;
+      color: var(--error);
+      margin-top: 4px;
+      display: none;
+    }
+
+    .field-error.visible { display: block; }
+
+    .form-actions {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+      margin-top: 1.5rem;
+    }
+
+    .btn-cancel {
+      padding: 0.72rem 1.4rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--charcoal);
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .btn-cancel:hover { border-color: var(--charcoal); }
+
+    .btn-submit {
+      padding: 0.72rem 1.6rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 600;
+      background: var(--teal);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: background 0.2s, transform 0.15s;
+      min-width: 120px;
+      justify-content: center;
+    }
+
+    .btn-submit:hover { background: var(--teal-dark); transform: translateY(-1px); }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .spinner {
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000; padding: 1rem;
+    }
+
+    .success-modal {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 2rem 1.75rem;
+      max-width: 380px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+    }
+
+    .success-modal-icon {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: rgba(46,125,82,0.1);
+      border: 1.5px solid rgba(46,125,82,0.25);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1rem;
+      color: var(--success);
+    }
+
+    .success-modal h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.4rem;
+      font-weight: 400;
+      color: var(--charcoal);
+      margin: 0 0 0.4rem;
+    }
+
+    .success-modal p {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: 0 0 1.5rem;
+    }
+
+    .success-modal-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .modal-btn-primary {
+      width: 100%;
+      padding: 0.72rem 1rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      background: var(--teal);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .modal-btn-primary:hover { background: var(--teal-dark); }
+
+    .modal-btn-ghost {
+      width: 100%;
+      padding: 0.72rem 1rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      background: transparent;
+      color: var(--charcoal);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+
+    .modal-btn-ghost:hover { border-color: var(--charcoal); }
+  </style>
+</head>
+<body class="page-body">
+
+<div id="navbar"></div>
+
+<main class="form-page-main">
+  <div class="form-page-header">
+    <h1 class="form-page-title">Add User</h1>
+    <p class="form-page-subtitle">Create a new customer or admin account.</p>
+  </div>
+
+  <!-- Account Info -->
+  <div class="form-section">
+    <p class="form-section-title">Account Information</p>
+
+    <div class="field-group">
+      <label for="username">Username <span>*</span></label>
+      <input type="text" id="username" class="field-input" placeholder="e.g. johndoe" autocomplete="off">
+      <p class="field-error" id="usernameError">Username is required.</p>
+    </div>
+
+    <div class="field-group">
+      <label for="email">Email <span>*</span></label>
+      <input type="email" id="email" class="field-input" placeholder="e.g. john@example.com" autocomplete="off">
+      <p class="field-error" id="emailError">A valid email is required.</p>
+    </div>
+
+    <div class="field-group">
+      <label for="password">Password <span>*</span></label>
+      <input type="password" id="password" class="field-input" placeholder="Min. 6 characters" autocomplete="new-password">
+      <p class="field-error" id="passwordError">Password must be at least 6 characters.</p>
+    </div>
+
+    <div class="field-group">
+      <label for="role">Role <span>*</span></label>
+      <div class="field-select-wrap">
+        <select id="role" class="field-select">
+          <option value="ROLE_USER">User</option>
+          <option value="ROLE_ADMIN">Admin</option>
+        </select>
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <a href="manage-users.html" class="btn-cancel">Cancel</a>
+    <button class="btn-submit" id="submitBtn" onclick="submitForm()">
+      <span class="spinner" id="spinner"></span>
+      <span id="submitLabel">Add User</span>
+    </button>
+  </div>
+</main>
+
+<script src="/js/navbar.js"></script>
+<div id="modalContainer"></div>
+<script>
+  function validate() {
+    let valid = true;
+
+    const username = document.getElementById("username").value.trim();
+    const usernameErr = document.getElementById("usernameError");
+    if (!username) {
+      document.getElementById("username").classList.add("error");
+      usernameErr.classList.add("visible");
+      valid = false;
+    } else {
+      document.getElementById("username").classList.remove("error");
+      usernameErr.classList.remove("visible");
+    }
+
+    const email = document.getElementById("email").value.trim();
+    const emailErr = document.getElementById("emailError");
+    if (!email || !email.includes("@")) {
+      document.getElementById("email").classList.add("error");
+      emailErr.classList.add("visible");
+      valid = false;
+    } else {
+      document.getElementById("email").classList.remove("error");
+      emailErr.classList.remove("visible");
+    }
+
+    const password = document.getElementById("password").value;
+    const passwordErr = document.getElementById("passwordError");
+    if (!password || password.length < 6) {
+      document.getElementById("password").classList.add("error");
+      passwordErr.classList.add("visible");
+      valid = false;
+    } else {
+      document.getElementById("password").classList.remove("error");
+      passwordErr.classList.remove("visible");
+    }
+
+    return valid;
+  }
+
+  function submitForm() {
+    if (!validate()) return;
+
+    const btn   = document.getElementById("submitBtn");
+    const label = document.getElementById("submitLabel");
+    const spinner = document.getElementById("spinner");
+
+    btn.disabled = true;
+    spinner.style.display = "block";
+    label.textContent = "Adding…";
+
+    const payload = {
+      username: document.getElementById("username").value.trim(),
+      email:    document.getElementById("email").value.trim(),
+      password: document.getElementById("password").value,
+      role:     document.getElementById("role").value
+    };
+
+    fetch("http://localhost:8080/api/users", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    })
+            .then(res => {
+              if (!res.ok) throw new Error("Failed to create user");
+              return res.json();
+            })
+            .then(() => {
+              spinner.style.display = "none";
+              btn.disabled = false;
+              label.textContent = "Add User";
+              btn.style.background = "";
+              showSuccessModal(payload.username);
+            })
+            .catch(err => {
+              console.error(err);
+              spinner.style.display = "none";
+              label.textContent = "Add User";
+              btn.disabled = false;
+              alert("Failed to add user. The username or email may already be taken.");
+            });
+  }
+
+  function showSuccessModal(username) {
+    document.getElementById("modalContainer").innerHTML = `
+      <div class="modal-overlay">
+        <div class="success-modal">
+          <div class="success-modal-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+          <h2>User Added!</h2>
+          <p><strong>${username}</strong> has been successfully created.</p>
+          <div class="success-modal-actions">
+            <button class="modal-btn-primary" onclick="addAnotherUser()">Add Another User</button>
+            <button class="modal-btn-ghost" onclick="window.location.href='manage-users.html'">Go to Users List</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function addAnotherUser() {
+    document.getElementById("username").value = "";
+    document.getElementById("email").value = "";
+    document.getElementById("password").value = "";
+    document.getElementById("role").value = "ROLE_USER";
+    ["username","email","password"].forEach(id => {
+      document.getElementById(id).classList.remove("error");
+    });
+    ["usernameError","emailError","passwordError"].forEach(id => {
+      document.getElementById(id).classList.remove("visible");
+    });
+    document.getElementById("modalContainer").innerHTML = "";
+    document.getElementById("username").focus();
+  }
+</script>
+</body>
+</html>

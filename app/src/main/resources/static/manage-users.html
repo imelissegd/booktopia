@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Users — Booktopia</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    /* User grid cards */
+    #userList {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.25rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    @media (max-width: 1024px) { #userList { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 640px)  { #userList { grid-template-columns: repeat(2, 1fr); } }
+
+    .user-card {
+      background: var(--surface);
+      border-radius: 10px;
+      border: 1.5px solid var(--border);
+      padding: 1.2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 0.4rem;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .user-card:hover { transform: translateY(-3px); box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
+
+    .user-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--offwhite);
+      border: 1.5px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 0.3rem;
+      flex-shrink: 0;
+    }
+
+    .user-avatar svg { width: 26px; height: 26px; stroke: var(--muted); fill: none; stroke-width: 1.6; }
+
+    .user-name  { font-weight: 600; font-size: 0.92rem; color: var(--charcoal); }
+    .user-email { font-size: 0.78rem; color: var(--muted); word-break: break-all; }
+
+    .user-role-badge {
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 2px 10px;
+      border-radius: 20px;
+      margin-top: 2px;
+    }
+
+    .role--admin { background: rgba(0,137,123,0.12); color: var(--teal); }
+    .role--user  { background: var(--offwhite); border: 1px solid var(--border); color: var(--muted); }
+
+    .user-card-actions {
+      margin-top: auto;
+      padding-top: 0.75rem;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .btn-view-user {
+      width: 100%;
+      padding: 7px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 5px;
+      background: var(--offwhite);
+      color: var(--charcoal);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 600;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .btn-view-user:hover { border-color: var(--teal); color: var(--teal); }
+
+    /* Controls */
+    .catalog-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      max-width: 640px;
+      margin: 1.5rem auto 0.75rem;
+      padding: 0 20px;
+      flex-wrap: wrap;
+    }
+
+    .search-wrap { position: relative; flex: 1; min-width: 180px; }
+    .search-wrap svg {
+      position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
+      width: 14px; height: 14px; stroke: var(--muted); fill: none;
+      stroke-width: 1.8; pointer-events: none; transition: stroke 0.2s;
+    }
+    .search-wrap:focus-within svg { stroke: var(--teal); }
+
+    .search-input {
+      width: 100%;
+      padding: 0.62rem 1rem 0.62rem 2.3rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      color: var(--charcoal);
+      background: var(--offwhite);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+    .search-input::placeholder { color: var(--muted); }
+    .search-input:focus { border-color: var(--teal); box-shadow: 0 0 0 3px var(--teal-glow); background: var(--surface); }
+
+    .category-wrap { position: relative; display: inline-flex; align-items: center; }
+    .category-wrap svg { position: absolute; right: 9px; width: 13px; height: 13px; stroke: var(--muted); fill: none; pointer-events: none; }
+
+    .category-select {
+      appearance: none;
+      padding: 0.62rem 2.2rem 0.62rem 0.9rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      color: var(--charcoal);
+      background: var(--offwhite);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .category-select:focus { border-color: var(--teal); box-shadow: 0 0 0 3px var(--teal-glow); }
+
+    .results-count { text-align: center; font-size: 0.78rem; color: var(--muted); margin-bottom: 1rem; }
+
+    /* View toggle */
+    .view-toggle {
+      display: flex; gap: 2px; background: var(--offwhite);
+      border: 1.5px solid var(--border); border-radius: 8px; padding: 3px; flex-shrink: 0;
+    }
+    .view-toggle-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px; border: none; border-radius: 6px;
+      background: transparent; color: var(--muted); cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .view-toggle-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .view-toggle-btn.active { background: var(--surface); color: var(--teal); box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    .view-toggle-btn:hover:not(.active) { color: var(--charcoal); }
+
+    /* List view */
+    #userList.list-view { display: block; max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+    .catalog-main { padding-top: 2rem; }
+  </style>
+</head>
+<body class="catalog-body">
+
+<div id="navbar"></div>
+
+<main class="catalog-main">
+  <div style="display:flex;align-items:center;justify-content:space-between;max-width:1200px;margin:0 auto 0.25rem;padding:0 20px">
+    <h1 style="margin:0;font-family:'DM Serif Display',serif">Manage Users</h1>
+    <a href="add-user.html" class="btn-action btn-action--primary" style="text-decoration:none">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add User
+    </a>
+  </div>
+
+  <div class="catalog-controls">
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" id="searchInput" class="search-input"
+             placeholder="Search by username or email…"
+             oninput="applyFilters()" autocomplete="off">
+    </div>
+
+    <!-- Role filter -->
+    <div class="category-wrap">
+      <select id="roleFilter" class="category-select" onchange="applyFilters()">
+        <option value="">All Roles</option>
+        <option value="ROLE_ADMIN">Admin</option>
+        <option value="ROLE_USER">User</option>
+      </select>
+      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+
+    <!-- Status filter -->
+    <div class="category-wrap">
+      <select id="statusFilter" class="category-select" onchange="applyFilters()">
+        <option value="all">All</option>
+        <option value="active">Active</option>
+        <option value="deactivated">Deactivated</option>
+      </select>
+      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+
+    <!-- View toggle -->
+    <div class="view-toggle">
+      <button class="view-toggle-btn" id="gridViewBtn" title="Grid view" onclick="setView('grid')">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      </button>
+      <button class="view-toggle-btn active" id="listViewBtn" title="List view" onclick="setView('list')">
+        <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <p id="resultsCount" class="results-count"></p>
+
+  <div id="userList"></div>
+  <div id="pagination" class="pagination"></div>
+</main>
+
+<div id="modalContainer"></div>
+
+<script src="/js/navbar.js"></script>
+<script src="/js/manage-users.js"></script>
+</body>
+</html>

@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit User — Booktopia</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .form-page-main {
+      max-width: 580px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 4rem;
+    }
+
+    .form-page-header { margin-bottom: 2rem; }
+
+    .form-page-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2rem;
+      font-weight: 400;
+      color: var(--charcoal);
+      letter-spacing: -0.02em;
+      margin: 0 0 0.3rem;
+    }
+
+    .form-page-subtitle { font-size: 0.85rem; color: var(--muted); margin: 0; }
+
+    .form-section {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .form-section-title {
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0 0 1.1rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1.5px solid var(--border);
+    }
+
+    .field-group { margin-bottom: 1rem; }
+    .field-group:last-child { margin-bottom: 0; }
+
+    .field-group label {
+      display: block;
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--charcoal);
+      margin-bottom: 0.38rem;
+    }
+
+    .field-group label span { color: var(--error); margin-left: 2px; }
+
+    .field-hint { font-size: 0.72rem; color: var(--muted); margin-top: 4px; }
+
+    .field-input {
+      width: 100%;
+      padding: 0.72rem 1rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      color: var(--charcoal);
+      background: var(--offwhite);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+
+    .field-input:focus { border-color: var(--teal); box-shadow: 0 0 0 3px var(--teal-glow); background: var(--surface); }
+    .field-input.error { border-color: var(--error); box-shadow: 0 0 0 3px rgba(192,57,43,0.12); }
+
+    .field-select-wrap { position: relative; }
+    .field-select-wrap svg {
+      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+      width: 13px; height: 13px; stroke: var(--muted); fill: none; pointer-events: none;
+    }
+
+    .field-select {
+      width: 100%;
+      padding: 0.72rem 2.2rem 0.72rem 1rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      color: var(--charcoal);
+      background: var(--offwhite);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .field-select:focus { border-color: var(--teal); box-shadow: 0 0 0 3px var(--teal-glow); }
+
+    .field-error { font-size: 0.72rem; color: var(--error); margin-top: 4px; display: none; }
+    .field-error.visible { display: block; }
+
+    .save-banner {
+      display: none;
+      background: rgba(46,125,82,0.1);
+      border: 1.5px solid rgba(46,125,82,0.3);
+      border-radius: 8px;
+      padding: 0.65rem 1rem;
+      font-size: 0.85rem;
+      color: var(--success);
+      font-weight: 500;
+      margin-bottom: 1.2rem;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .save-banner.visible { display: flex; }
+
+    .form-actions {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+      margin-top: 1.5rem;
+    }
+
+    .btn-cancel {
+      padding: 0.72rem 1.4rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--charcoal);
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .btn-cancel:hover { border-color: var(--charcoal); }
+
+    .btn-submit {
+      padding: 0.72rem 1.6rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 600;
+      background: var(--teal);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: background 0.2s, transform 0.15s;
+      min-width: 120px;
+      justify-content: center;
+    }
+
+    .btn-submit:hover { background: var(--teal-dark); transform: translateY(-1px); }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .spinner {
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-placeholder {
+      text-align: center;
+      padding: 3rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body class="page-body">
+
+<div id="navbar"></div>
+
+<main class="form-page-main">
+  <div class="form-page-header">
+    <h1 class="form-page-title">Edit User</h1>
+    <p class="form-page-subtitle" id="pageSubtitle">Loading user…</p>
+  </div>
+
+  <div class="save-banner" id="saveBanner">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg>
+    Changes saved successfully.
+  </div>
+
+  <div id="formContent" class="loading-placeholder">Loading…</div>
+</main>
+
+<script src="/js/navbar.js"></script>
+<script>
+  const userId = new URLSearchParams(window.location.search).get("id");
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    if (!userId) { alert("No user ID provided."); window.location.href = "manage-users.html"; return; }
+    await loadUser();
+  });
+
+  async function loadUser() {
+    try {
+      const res = await fetch(`http://localhost:8080/api/users/id/${userId}`, { credentials: "include" });
+      if (!res.ok) throw new Error();
+      const user = await res.json();
+      renderForm(user);
+    } catch {
+      document.getElementById("formContent").innerHTML =
+              "<p style='color:var(--error)'>Failed to load user. <a href='manage-users.html'>Go back</a></p>";
+    }
+  }
+
+  function renderForm(user) {
+    document.getElementById("pageSubtitle").textContent = `Editing account: ${user.username}`;
+
+    document.getElementById("formContent").innerHTML = `
+      <!-- Account Info -->
+      <div class="form-section">
+        <p class="form-section-title">Account Information</p>
+
+        <div class="field-group">
+          <label for="username">Username <span>*</span></label>
+          <input type="text" id="username" class="field-input" value="${user.username || ''}" autocomplete="off">
+          <p class="field-error" id="usernameError">Username is required.</p>
+        </div>
+
+        <div class="field-group">
+          <label for="email">Email <span>*</span></label>
+          <input type="email" id="email" class="field-input" value="${user.email || ''}" autocomplete="off">
+          <p class="field-error" id="emailError">A valid email is required.</p>
+        </div>
+      </div>
+
+      <!-- Password -->
+      <div class="form-section">
+        <p class="form-section-title">Change Password</p>
+        <div class="field-group">
+          <label for="password">New Password</label>
+          <input type="password" id="password" class="field-input" placeholder="Leave blank to keep current password" autocomplete="new-password">
+          <p class="field-hint">Only fill this in if you want to change the password.</p>
+          <p class="field-error" id="passwordError">Password must be at least 6 characters.</p>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <a href="manage-users.html" class="btn-cancel">← Back</a>
+        <button class="btn-submit" id="submitBtn" onclick="submitForm()">
+          <span class="spinner" id="spinner"></span>
+          <span id="submitLabel">Save Changes</span>
+        </button>
+      </div>
+    `;
+  }
+
+  function validate() {
+    let valid = true;
+
+    const username = document.getElementById("username").value.trim();
+    const usernameErr = document.getElementById("usernameError");
+    if (!username) {
+      document.getElementById("username").classList.add("error");
+      usernameErr.classList.add("visible");
+      valid = false;
+    } else {
+      document.getElementById("username").classList.remove("error");
+      usernameErr.classList.remove("visible");
+    }
+
+    const email = document.getElementById("email").value.trim();
+    const emailErr = document.getElementById("emailError");
+    if (!email || !email.includes("@")) {
+      document.getElementById("email").classList.add("error");
+      emailErr.classList.add("visible");
+      valid = false;
+    } else {
+      document.getElementById("email").classList.remove("error");
+      emailErr.classList.remove("visible");
+    }
+
+    const password = document.getElementById("password").value;
+    const passwordErr = document.getElementById("passwordError");
+    if (password && password.length < 6) {
+      document.getElementById("password").classList.add("error");
+      passwordErr.classList.add("visible");
+      valid = false;
+    } else {
+      document.getElementById("password").classList.remove("error");
+      passwordErr.classList.remove("visible");
+    }
+
+    return valid;
+  }
+
+  function submitForm() {
+    if (!validate()) return;
+
+    const btn     = document.getElementById("submitBtn");
+    const label   = document.getElementById("submitLabel");
+    const spinner = document.getElementById("spinner");
+
+    btn.disabled = true;
+    spinner.style.display = "block";
+    label.textContent = "Saving…";
+
+    const password = document.getElementById("password").value;
+    const payload = {
+      username: document.getElementById("username").value.trim(),
+      email:    document.getElementById("email").value.trim(),
+      ...(password ? { password } : {})
+    };
+
+    fetch(`http://localhost:8080/api/users/${userId}`, {
+      method: "PUT",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    })
+            .then(res => { if (!res.ok) throw new Error(); return res.json(); })
+            .then(() => {
+              spinner.style.display = "none";
+              label.textContent = "✓ Saved";
+              btn.style.background = "var(--success)";
+              document.getElementById("saveBanner").classList.add("visible");
+              setTimeout(() => {
+                btn.disabled = false;
+                btn.style.background = "";
+                label.textContent = "Save Changes";
+                document.getElementById("saveBanner").classList.remove("visible");
+              }, 2500);
+            })
+            .catch(() => {
+              spinner.style.display = "none";
+              label.textContent = "Save Changes";
+              btn.disabled = false;
+              alert("Failed to save changes. The username or email may already be taken.");
+            });
+  }
+</script>
+</body>
+</html>
