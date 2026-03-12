@@ -71,10 +71,13 @@ function applyFilters() {
   });
 
   const countEl = document.getElementById("resultsCount");
-  if (query || role || status !== "all") {
-    countEl.textContent = `${filteredUsers.length} result${filteredUsers.length !== 1 ? "s" : ""} found`;
+  const _total = users.length;
+  const _shown = filteredUsers.length;
+  const _filtered = query || role || status !== "all";
+  if (_filtered) {
+    countEl.textContent = `Showing ${_shown} of ${_total} user${_total !== 1 ? "s" : ""}`;
   } else {
-    countEl.textContent = "";
+    countEl.textContent = `${_total} user${_total !== 1 ? "s" : ""} total`;
   }
 
   currentPage = 1;

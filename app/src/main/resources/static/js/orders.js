@@ -59,6 +59,13 @@ function renderOrders(data) {
 
     container.innerHTML = "";
 
+    // --- Order count summary ---
+    const _totalItems = data.reduce((sum, o) => sum + o.items.reduce((s, i) => s + i.quantity, 0), 0);
+    const _countBanner = document.createElement("p");
+    _countBanner.style.cssText = "font-size:0.78rem;color:var(--muted);margin:0 0 0.75rem;padding:0.75rem 20px 0";
+    _countBanner.textContent = `${data.length} order${data.length !== 1 ? "s" : ""} • ${_totalItems} item${_totalItems !== 1 ? "s" : ""} total`;
+    container.appendChild(_countBanner);
+
     data.forEach(order => {
         const rows = order.items.map(item => `
       <tr>

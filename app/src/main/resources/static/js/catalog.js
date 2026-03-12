@@ -84,10 +84,13 @@ function applyFilters() {
   });
 
   const countEl = document.getElementById("resultsCount");
-  if (query || (!allSelected && selectedCategories.length > 0) || (isManageMode && status !== "all")) {
-    countEl.textContent = `${filteredBooks.length} result${filteredBooks.length !== 1 ? "s" : ""} found`;
+  const _total = books.length;
+  const _shown = filteredBooks.length;
+  const _filtered = query || (!allSelected && selectedCategories.length > 0) || (isManageMode && status !== "all");
+  if (_filtered) {
+    countEl.textContent = `Showing ${_shown} of ${_total} book${_total !== 1 ? "s" : ""}`;
   } else {
-    countEl.textContent = "";
+    countEl.textContent = `${_total} book${_total !== 1 ? "s" : ""} total`;
   }
 
   currentPage = 1;

@@ -97,6 +97,12 @@ function renderCart() {
     </tr>
   `).join("");
 
+    const _cartTotal = cartItems.reduce((sum, i) => sum + i.quantity, 0);
+    const _cartUnique = cartItems.length;
+    const _cartSummaryEl = document.createElement("p");
+    _cartSummaryEl.style.cssText = "font-size:0.78rem;color:var(--muted);margin:0 0 0.6rem;padding:0.75rem 0 0 20px";
+    _cartSummaryEl.textContent = `${_cartUnique} item${_cartUnique !== 1 ? "s" : ""} • ${_cartTotal} book${_cartTotal !== 1 ? "s" : ""} total`;
+
     container.innerHTML = `
     <div class="table-wrap">
       <table class="data-table">
@@ -117,6 +123,8 @@ function renderCart() {
       </table>
     </div>
   `;
+
+    container.prepend(_cartSummaryEl);
 
     if (!isAdmin) {
         document.getElementById("selectAll").addEventListener("change", e => {
