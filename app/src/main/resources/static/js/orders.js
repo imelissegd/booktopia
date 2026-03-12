@@ -69,13 +69,13 @@ function renderOrders(data) {
     data.forEach(order => {
         const rows = order.items.map(item => `
       <tr>
-        <td class="td-title">${item.bookTitle}</td>
-        <td>${item.author || "—"}</td>
+        <td class="td-title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${item.bookTitle}</td>
+        <td style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${item.author || "—"}</td>
         <td class="td-center">${item.quantity}</td>
         <td class="td-price">₱${item.unitPrice}</td>
         <td class="td-price td-bold">₱${item.totalPrice}</td>
         <td class="td-actions">
-          <button class="tbl-btn tbl-btn--ghost" style="background:var(--offwhite)" onclick="openViewBook(${item.bookId})">View Book</button>
+          <button class="tbl-btn tbl-btn--ghost" onclick="openViewBook(${item.bookId})">View Book</button>
         </td>
       </tr>
     `).join("");
@@ -92,12 +92,21 @@ function renderOrders(data) {
       <div class="order-card-header">
         <div class="order-card-meta">
           <span class="order-id">Order ${order.transactionId}</span>
-          <span class="order-date">${new Date(order.orderDate).toLocaleDateString("en-PH", { year:"numeric", month:"long", day:"numeric" })}</span>
         </div>
-        ${isAdmin ? `<span class="status-badge ${statusClass}">${order.status}</span>` : ``}
+        <span class="order-date" style="margin-left:auto;font-size:0.78rem;color:var(--muted)">
+          Order Placed: ${new Date(order.orderDate).toLocaleDateString("en-PH", { year:"numeric", month:"long", day:"numeric" })}
+        </span>
       </div>
       <div class="table-wrap">
-        <table class="data-table">
+        <table class="data-table" style="table-layout:fixed;width:100%">
+          <colgroup>
+            <col style="width:30%">
+            <col style="width:20%">
+            <col style="width:8%">
+            <col style="width:14%">
+            <col style="width:14%">
+            <col style="width:14%">
+          </colgroup>
           <thead>
             <tr>
               <th>Book Title</th>
