@@ -650,6 +650,28 @@ html, body {
 .modal button:last-of-type  { background: #f0f0f0; color: var(--charcoal); }
 .modal button:last-of-type:hover  { background: #e0e0e0; }
 
+/* Named button classes always override the generic first/last-of-type rules */
+.modal .modal-btn-amber,
+.modal .modal-btn-amber:first-of-type,
+.modal .modal-btn-amber:last-of-type { background: var(--amber) !important; color: #fff !important; border: none !important; }
+.modal .modal-btn-amber:hover,
+.modal .modal-btn-amber:first-of-type:hover,
+.modal .modal-btn-amber:last-of-type:hover { background: var(--amber-dark) !important; }
+
+.modal .modal-btn-teal,
+.modal .modal-btn-teal:first-of-type,
+.modal .modal-btn-teal:last-of-type { background: var(--teal) !important; color: #fff !important; border: none !important; }
+.modal .modal-btn-teal:hover,
+.modal .modal-btn-teal:first-of-type:hover,
+.modal .modal-btn-teal:last-of-type:hover { background: var(--teal-dark) !important; }
+
+.modal .modal-btn-ghost,
+.modal .modal-btn-ghost:first-of-type,
+.modal .modal-btn-ghost:last-of-type { background: transparent !important; color: var(--charcoal) !important; border: 1.5px solid var(--border) !important; }
+.modal .modal-btn-ghost:hover,
+.modal .modal-btn-ghost:first-of-type:hover,
+.modal .modal-btn-ghost:last-of-type:hover { background: transparent !important; border-color: var(--teal) !important; color: var(--teal) !important; }
+
 .modal-lock-icon {
   display: flex;
   justify-content: center;

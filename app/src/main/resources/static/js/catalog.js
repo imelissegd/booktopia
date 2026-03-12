@@ -389,16 +389,17 @@ function openAddToCart(bookId) {
   document.getElementById("modalContainer").innerHTML = `
     <div class="modal-overlay" onclick="closeModal()">
       <div class="modal">
-        <h2>Add to Cart</h2>
+        <h2 style="color:var(--teal)">Add to Cart</h2>
         <p class="modal-book-title">${book.title}</p>
         <p class="modal-book-author">by ${book.author || 'Unknown Author'}</p>
         <p class="modal-book-price">₱${book.price}</p>
         <label>Quantity</label>
         <input type="number" id="qty" value="1" min="1" oninput="updateModalTotal(${book.price})">
         <p>Total: <strong id="modalTotal">₱${book.price}</strong></p>
-        <br>
-        <button onclick="addToCart(${book.id})">Add to Cart</button>
-        <button onclick="closeModal()">Cancel</button>
+        <div class="modal-action-row" style="margin-top:1rem">
+          <button class="modal-btn-teal" onclick="addToCart(${book.id})">Add to Cart</button>
+          <button class="modal-btn-ghost" onclick="closeModal()">Cancel</button>
+        </div>
       </div>
     </div>`;
   document.querySelector("#modalContainer .modal").addEventListener("click", e => e.stopPropagation());
@@ -416,16 +417,17 @@ function openCheckout(bookId, maxQty = null) {
   document.getElementById("modalContainer").innerHTML = `
     <div class="modal-overlay" onclick="closeModal()">
       <div class="modal">
-        <h2>Buy Now</h2>
+        <h2 style="color:var(--amber-dark)">Buy Now</h2>
         <p class="modal-book-title">${book.title}</p>
         <p class="modal-book-author">by ${book.author || 'Unknown Author'}</p>
         <p class="modal-book-price">₱${book.price}</p>
         <label>Quantity</label>
         <input type="number" id="qty" value="${initialQty}" min="1" ${maxAttr} oninput="updateModalTotal(${book.price})">
         <p>Total: <strong id="modalTotal">₱${(book.price * initialQty).toFixed(2)}</strong></p>
-        <br>
-        <button class="modal-btn-amber" onclick="buyNow(${book.id})">Buy Now</button>
-        <button onclick="closeModal()">Cancel</button>
+        <div class="modal-action-row" style="margin-top:1rem">
+          <button class="modal-btn-amber" onclick="buyNow(${book.id})">Buy Now</button>
+          <button class="modal-btn-ghost" onclick="closeModal()">Cancel</button>
+        </div>
       </div>
     </div>`;
   document.querySelector("#modalContainer .modal").addEventListener("click", e => e.stopPropagation());
