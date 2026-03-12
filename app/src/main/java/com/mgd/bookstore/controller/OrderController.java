@@ -23,25 +23,35 @@ public class OrderController {
         this.userService = userService;
     }
 
-    //  Checkout: Convert user's cart (or select items) into an order
     @PostMapping("/{username}/checkout")
-    public ResponseEntity<OrderResponseDTO> checkout(
+    public ResponseEntity<?> checkout(
             @PathVariable String username,
             @RequestBody(required = false) CheckoutRequestDTO request) {
 
         return userService.findByUsername(username)
-                .map(user -> ResponseEntity.ok(
-                        orderService.checkout(user,
-                                request != null ? request.getCartItemIds() : null)
-                ))
+                .map(user -> {
+                    try {
+                        return ResponseEntity.ok(
+                                (Object) orderService.checkout(user, request != null ? request.getCartItemIds() : null)
+                        );
+                    } catch (RuntimeException e) {
+                        return ResponseEntity.badRequest().body((Object) e.getMessage());
+                    }
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping("/{username}/buy-now")
-    public ResponseEntity<OrderResponseDTO> buyNow(@PathVariable String username,
-                                                   @RequestBody AddToCartRequestDTO request) {
+    public ResponseEntity<?> buyNow(@PathVariable String username,
+                                    @RequestBody AddToCartRequestDTO request) {
         return userService.findByUsername(username)
-                .map(user -> ResponseEntity.ok(orderService.buyNow(user, request.getBookId(), request.getQuantity())))
+                .map(user -> {
+                    try {
+                        return ResponseEntity.ok((Object) orderService.buyNow(user, request.getBookId(), request.getQuantity()));
+                    } catch (RuntimeException e) {
+                        return ResponseEntity.badRequest().body((Object) e.getMessage());
+                    }
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
 

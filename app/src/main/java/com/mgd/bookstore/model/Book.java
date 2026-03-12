@@ -30,6 +30,9 @@ public class Book {
     @Column(nullable = false, columnDefinition = "boolean default true")
     private boolean active = true;
 
+    @Column(name = "stock", nullable = false, columnDefinition = "integer default 0")
+    private Integer stock = 0;
+
     // Store multiple categories as Enum
     @ElementCollection(targetClass = Category.class)
     @Enumerated(EnumType.STRING)
@@ -95,6 +98,14 @@ public class Book {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public Integer getStock() {
+        return stock;
+    }
+
+    public void setStock(Integer stock) {
+        this.stock = stock;
     }
 
     public List<Category> getCategories() {

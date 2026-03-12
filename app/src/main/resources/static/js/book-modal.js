@@ -8,7 +8,10 @@ function viewBookModal(bookId, {
     loggedInUser = null,
     onSuccessCart = null,
     onSuccessBuy = null,
-    hidePurchase = false
+    onBrowse = null,
+    hidePurchase = false,
+    _autoExpandBuy = false,
+    _maxQty = null
 } = {}) {
     const modalContainer = document.getElementById(modalContainerId);
 
@@ -33,7 +36,8 @@ function viewBookModal(bookId, {
 
             const canPurchase = !hidePurchase && loggedInUser && loggedInUser.role !== "ROLE_ADMIN";
 
-            window._modalCallbacks = { onSuccessCart, onSuccessBuy, closeFn, modalContainerId };
+            window._modalCallbacks = { onSuccessCart, onSuccessBuy, onBrowse, closeFn, modalContainerId };
+            window._modalBook = book;
 
             modalContainer.innerHTML = `
         <div class="modal-overlay" onclick="${closeFn}()">
@@ -47,6 +51,11 @@ function viewBookModal(bookId, {
                 <h2 class="modal-book-title">${book.title}</h2>
                 <p class="modal-book-author">by ${book.author || 'Unknown Author'}</p>
                 <p class="modal-book-price">₱${book.price}</p>
+                ${book.stock !== null && book.stock !== undefined
+                ? book.stock <= 0
+                    ? `<p class="modal-book-stock" style="font-size:0.8rem;font-weight:600;color:var(--error)">Out of Stock</p>`
+                    : `<p class="modal-book-stock" style="font-size:0.8rem;font-weight:600;color:var(--teal)">Stock: ${book.stock}</p>`
+                : ""}
                 ${categoryBadges ? `<div class="category-badges">${categoryBadges}</div>` : ""}
                 <p class="modal-book-desc">${book.description || 'No description available.'}</p>
               </div>
@@ -63,8 +72,25 @@ function viewBookModal(bookId, {
         </div>`;
 
             modalContainer.querySelector(".modal").addEventListener("click", e => e.stopPropagation());
+
+            if (_autoExpandBuy && canPurchase) {
+                try {
+                    expandModalBuy(book.id, book.price);
+                    if (_maxQty !== null) {
+                        const qtyInput = document.getElementById("modalQty");
+                        if (qtyInput) {
+                            qtyInput.max = _maxQty;
+                            qtyInput.value = Math.min(parseInt(qtyInput.value) || 1, _maxQty);
+                            updateModalTotal(book.price);
+                        }
+                    }
+                } catch (e) {
+                    console.error("expandModalBuy error:", e);
+                }
+            }
         })
-        .catch(() => {
+        .catch(err => {
+            console.error("viewBookModal fetch error:", err);
             modalContainer.innerHTML = `
         <div class="modal-overlay" onclick="${closeFn}()">
           <div class="modal">
@@ -197,7 +223,11 @@ function confirmBuyNow(bookId) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ bookId, quantity: qty })
     })
-        .then(res => res.json())
+        .then(res => {
+            if (res.status === 400) return res.text().then(msg => { throw { stock: true, message: msg }; });
+            if (!res.ok) throw { stock: false, message: "Error during checkout" };
+            return res.json();
+        })
         .then(order => {
             const txnId = order?.transactionId ?? "";
             if (typeof onSuccessBuy === "function") {
@@ -213,7 +243,99 @@ function confirmBuyNow(bookId) {
                 });
             }
         })
-        .catch(err => { console.error(err); alert("Error during checkout"); });
+        .catch(err => {
+            if (err.stock) {
+                showStockErrorModal(modalContainerId, err.message, bookId);
+            } else {
+                console.error(err);
+                alert(err.message || "Error during checkout");
+            }
+        });
+}
+
+function showStockErrorModal(modalContainerId, serverMessage, bookId) {
+    const match = serverMessage.match(/Available:\s*(\d+)/i);
+    const available = match ? parseInt(match[1]) : null;
+
+    // Stock is completely gone — show out-of-stock modal
+    if (available === 0) {
+        showOutOfStockModal(modalContainerId);
+        return;
+    }
+
+    const { onBrowse } = window._modalCallbacks || {};
+    const browseAction = typeof onBrowse === "function"
+        ? `(${onBrowse.toString()})()`
+        : `window.location.href='catalog.html'`;
+
+    // Some stock remains but not enough for the requested qty
+    const stockLine = available !== null
+        ? `<p style="font-size:1.1rem;font-weight:700;color:var(--teal);margin:0.25rem 0 1rem">${available} remaining in stock</p>`
+        : `<p style="font-size:0.88rem;color:var(--muted);margin-bottom:1rem">${serverMessage}</p>`;
+
+    const container = document.getElementById(modalContainerId);
+    container.innerHTML = `
+    <div class="modal-overlay">
+      <div class="modal" style="text-align:center;max-width:380px">
+        <div style="display:flex;justify-content:center;margin-bottom:0.75rem;color:var(--error)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="40" height="40" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <h2 style="font-family:'DM Serif Display',serif;margin-bottom:0.25rem">Not Enough Stock</h2>
+        ${stockLine}
+        <div class="modal-action-row">
+          <button class="modal-btn-ghost" id="_browseBtn">Browse Books</button>
+          <button class="modal-btn-teal" onclick="adjustQty(${bookId}, ${available ?? 1})">Adjust Quantity</button>
+        </div>
+      </div>
+    </div>`;
+    container.querySelector(".modal").addEventListener("click", e => e.stopPropagation());
+    container.querySelector("#_browseBtn").addEventListener("click", () => {
+        if (typeof onBrowse === "function") onBrowse();
+        else window.location.href = "catalog.html";
+    });
+}
+
+function showOutOfStockModal(modalContainerId) {
+    const { onBrowse } = window._modalCallbacks || {};
+    const container = document.getElementById(modalContainerId);
+    container.innerHTML = `
+    <div class="modal-overlay">
+      <div class="modal" style="text-align:center;max-width:380px">
+        <div style="display:flex;justify-content:center;margin-bottom:0.75rem;color:var(--error)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="40" height="40" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <h2 style="font-family:'DM Serif Display',serif;margin-bottom:0.25rem">Item Out of Stock</h2>
+        <p style="font-size:0.88rem;color:var(--muted);margin-bottom:1.25rem">This item is currently unavailable. Browse other books in the catalog.</p>
+        <div class="modal-action-row" style="justify-content:center">
+          <button class="modal-btn-teal" id="_browseBtn">Back to Catalog</button>
+        </div>
+      </div>
+    </div>`;
+    container.querySelector(".modal").addEventListener("click", e => e.stopPropagation());
+    container.querySelector("#_browseBtn").addEventListener("click", () => {
+        if (typeof onBrowse === "function") onBrowse();
+        else window.location.href = "catalog.html";
+    });
+}
+
+function adjustQty(bookId, maxQty) {
+    const { modalContainerId, closeFn, onSuccessCart, onSuccessBuy } = window._modalCallbacks || {};
+    const loggedInUser = (() => { try { return JSON.parse(localStorage.getItem("currentUser")); } catch { return null; } })();
+
+    // Re-open the book modal, then automatically expand the buy panel
+    viewBookModal(bookId, {
+        modalContainerId,
+        closeFn,
+        loggedInUser,
+        onSuccessCart,
+        onSuccessBuy,
+        _autoExpandBuy: true,
+        _maxQty: maxQty
+    });
 }
 
 function formatCategory(cat) {

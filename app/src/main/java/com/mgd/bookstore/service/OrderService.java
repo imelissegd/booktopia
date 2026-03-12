@@ -100,11 +100,22 @@ public class OrderService {
         order.setTransactionId(generateTransactionId());
 
         List<OrderItem> orderItems = itemsToCheckout.stream().map(cartItem -> {
+            Book book = cartItem.getBook();
+            int qty = cartItem.getQuantity();
+
+            // Stock validation
+            if (book.getStock() != null) {
+                if (book.getStock() < qty) {
+                    throw new RuntimeException("Insufficient stock for \"" + book.getTitle() + "\". Available: " + book.getStock());
+                }
+                book.setStock(book.getStock() - qty);
+                bookRepository.save(book);
+            }
+
             OrderItem orderItem = new OrderItem();
-            orderItem.setBook(cartItem.getBook());
-            orderItem.setQuantity(cartItem.getQuantity());
-            orderItem.setPrice(cartItem.getBook().getPrice()
-                    .multiply(BigDecimal.valueOf(cartItem.getQuantity())));
+            orderItem.setBook(book);
+            orderItem.setQuantity(qty);
+            orderItem.setPrice(book.getPrice().multiply(BigDecimal.valueOf(qty)));
             orderItem.setOrder(order);
             return orderItem;
         }).toList();
@@ -123,6 +134,15 @@ public class OrderService {
     public OrderResponseDTO buyNow(User user, Long bookId, int quantity) {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new RuntimeException("Book not found"));
+
+        // Stock validation
+        if (book.getStock() != null) {
+            if (book.getStock() < quantity) {
+                throw new RuntimeException("Insufficient stock for \"" + book.getTitle() + "\". Available: " + book.getStock());
+            }
+            book.setStock(book.getStock() - quantity);
+            bookRepository.save(book);
+        }
 
         Order order = new Order();
         order.setUser(user);

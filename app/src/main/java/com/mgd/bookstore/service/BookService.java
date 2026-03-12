@@ -28,6 +28,7 @@ public class BookService {
     }
 
     public Book saveBook(Book book) {
+        if (book.getStock() == null) book.setStock(0);
         return bookRepository.save(book);
     }
 
@@ -84,6 +85,7 @@ public class BookService {
             existing.setDescription(updated.getDescription());
             existing.setCategories(updated.getCategories());
             if (updated.getImage() != null) existing.setImage(updated.getImage());
+            existing.setStock(updated.getStock() != null ? updated.getStock() : 0);
             return bookRepository.save(existing);
         });
     }

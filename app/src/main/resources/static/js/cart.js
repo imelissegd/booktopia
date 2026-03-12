@@ -189,12 +189,12 @@ checkoutBtn.addEventListener("click", () => {
         body: JSON.stringify({ cartItemIds: selectedIds })
     })
         .then(res => {
-            if (!res.ok) throw new Error("Checkout failed");
+            if (res.status === 400) return res.text().then(msg => { throw { stock: true, message: msg }; });
+            if (!res.ok) throw { stock: false, message: "Checkout failed" };
             return res.json();
         })
         .then(data => {
-            const orderId = data?.orderId ?? data?.id;
-            const txnId   = data?.transactionId ?? "";
+            const txnId = data?.transactionId ?? "";
             showSuccessModal("cartModalContainer", {
                 title: "Order Placed!",
                 message: `Order ${txnId} has been placed successfully.`,
@@ -205,8 +205,12 @@ checkoutBtn.addEventListener("click", () => {
             });
         })
         .catch(err => {
-            console.error(err);
-            showToast("Checkout failed. Please try again.", "error");
+            if (err.stock) {
+                showCartStockError(err.message);
+            } else {
+                console.error(err);
+                showToast(err.message || "Checkout failed. Please try again.", "error");
+            }
         })
         .finally(() => {
             checkoutBtn.disabled = false;
@@ -271,4 +275,55 @@ function showToast(msg, type = "success") {
         toast.classList.remove("toast--visible");
         setTimeout(() => toast.remove(), 300);
     }, 3000);
+}
+
+function showCartStockError(serverMessage) {
+    const match = serverMessage.match(/Available:\s*(\d+)/i);
+    const available = match ? parseInt(match[1]) : null;
+    const modalContainerId = "cartModalContainer";
+    const container = document.getElementById(modalContainerId);
+
+    // Stock is completely gone — out-of-stock modal, one button
+    if (available === 0) {
+        container.innerHTML = `
+        <div class="modal-overlay">
+          <div class="modal" style="text-align:center;max-width:380px">
+            <div style="display:flex;justify-content:center;margin-bottom:0.75rem;color:var(--error)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="40" height="40" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+            </div>
+            <h2 style="font-family:'DM Serif Display',serif;margin-bottom:0.25rem">Item Out of Stock</h2>
+            <p style="font-size:0.88rem;color:var(--muted);margin-bottom:1.25rem">This item is currently unavailable. Browse other books in the catalog.</p>
+            <div class="modal-action-row" style="justify-content:center">
+              <button class="modal-btn-teal" onclick="window.location.href='catalog.html'">Back to Catalog</button>
+            </div>
+          </div>
+        </div>`;
+        container.querySelector(".modal").addEventListener("click", e => e.stopPropagation());
+        return;
+    }
+
+    // Some stock remains but not enough — show available count + adjust option
+    const stockLine = available !== null
+        ? `<p style="font-size:1.1rem;font-weight:700;color:var(--teal);margin:0.25rem 0 1rem">${available} remaining in stock</p>`
+        : `<p style="font-size:0.88rem;color:var(--muted);margin-bottom:1rem">${serverMessage}</p>`;
+
+    container.innerHTML = `
+    <div class="modal-overlay">
+      <div class="modal" style="text-align:center;max-width:380px">
+        <div style="display:flex;justify-content:center;margin-bottom:0.75rem;color:var(--error)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="40" height="40" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <h2 style="font-family:'DM Serif Display',serif;margin-bottom:0.25rem">Not Enough Stock</h2>
+        ${stockLine}
+        <div class="modal-action-row">
+          <button class="modal-btn-ghost" onclick="window.location.href='catalog.html'">Browse Books</button>
+          <button class="modal-btn-teal" onclick="document.getElementById('cartModalContainer').innerHTML='';fetchCart()">Adjust Quantity</button>
+        </div>
+      </div>
+    </div>`;
+    container.querySelector(".modal").addEventListener("click", e => e.stopPropagation());
 }

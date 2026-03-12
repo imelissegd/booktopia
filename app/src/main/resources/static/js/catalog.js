@@ -203,11 +203,18 @@ function renderGridView(bookList, pageBooks) {
         </div>`;
     }
 
+    const stockBadge = book.stock !== null && book.stock !== undefined
+        ? book.stock <= 0
+            ? `<span style="font-size:0.68rem;font-weight:600;padding:2px 8px;border-radius:20px;background:rgba(192,57,43,0.1);color:var(--error)">Out of Stock</span>`
+            : `<span style="font-size:0.68rem;font-weight:600;padding:2px 8px;border-radius:20px;background:rgba(0,137,123,0.1);color:var(--teal)">Stock: ${book.stock}</span>`
+        : "";
+
     div.innerHTML = `
       <img src="${book.image || './images/book-placeholder.svg'}" alt="${book.title}">
       <h3>${book.title}</h3>
       <p>${book.author || ''}</p>
       <p>₱${book.price}</p>
+      ${stockBadge}
       ${categoryBadges ? `<div class="category-badges">${categoryBadges}</div>` : ""}
       <div class="book-actions">${actions}</div>
     `;
@@ -255,6 +262,12 @@ function renderListView(bookList, pageBooks) {
         }</td>`
         : "";
 
+    const stockCell = book.stock !== null && book.stock !== undefined
+        ? book.stock <= 0
+            ? `<span class="list-badge" style="border-color:var(--error);color:var(--error)">Out of Stock</span>`
+            : `<span class="list-badge" style="border-color:var(--teal);color:var(--teal)">Stock: ${book.stock}</span>`
+        : `<span class="list-badge">—</span>`;
+
     return `
       <tr style="${book.active === false ? 'opacity:0.5' : ''}">
         <td><img class="list-cover" src="${book.image || './images/book-placeholder.svg'}" alt="${book.title}"></td>
@@ -263,6 +276,7 @@ function renderListView(bookList, pageBooks) {
           <div class="list-author">${book.author || '—'}</div>
         </td>
         <td class="list-price">₱${book.price}</td>
+        <td>${stockCell}</td>
         <td><div class="list-badges">${badges || '—'}</div></td>
         ${statusCell}
         <td><div class="list-actions">${actions}</div></td>
@@ -276,6 +290,7 @@ function renderListView(bookList, pageBooks) {
           <th></th>
           <th>Title / Author</th>
           <th>Price</th>
+          <th>Stock</th>
           <th>Categories</th>
           ${isManageMode ? '<th>Status</th>' : ''}
           <th>Actions</th>
@@ -321,7 +336,8 @@ function openViewBook(bookId) {
   viewBookModal(bookId, {
     modalContainerId: "modalContainer",
     closeFn: "closeModal",
-    loggedInUser
+    loggedInUser,
+    onBrowse: closeModal
   });
 }
 
@@ -358,11 +374,14 @@ function openAddToCart(bookId) {
   document.querySelector("#modalContainer .modal").addEventListener("click", e => e.stopPropagation());
 }
 
-function openCheckout(bookId) {
+function openCheckout(bookId, maxQty = null) {
   if (loggedInUser?.role === "ROLE_ADMIN") return;
 
   const book = books.find(b => b.id === bookId);
   if (!book) return;
+
+  const maxAttr = maxQty !== null ? `max="${maxQty}"` : "";
+  const initialQty = maxQty !== null ? Math.min(1, maxQty) : 1;
 
   document.getElementById("modalContainer").innerHTML = `
     <div class="modal-overlay" onclick="closeModal()">
@@ -372,10 +391,10 @@ function openCheckout(bookId) {
         <p class="modal-book-author">by ${book.author || 'Unknown Author'}</p>
         <p class="modal-book-price">₱${book.price}</p>
         <label>Quantity</label>
-        <input type="number" id="qty" value="1" min="1" oninput="updateModalTotal(${book.price})">
-        <p>Total: <strong id="modalTotal">₱${book.price}</strong></p>
+        <input type="number" id="qty" value="${initialQty}" min="1" ${maxAttr} oninput="updateModalTotal(${book.price})">
+        <p>Total: <strong id="modalTotal">₱${(book.price * initialQty).toFixed(2)}</strong></p>
         <br>
-        <button onclick="buyNow(${book.id})">Buy Now</button>
+        <button class="modal-btn-amber" onclick="buyNow(${book.id})">Buy Now</button>
         <button onclick="closeModal()">Cancel</button>
       </div>
     </div>`;
@@ -432,9 +451,20 @@ function buyNow(bookId) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ bookId, quantity: qty })
   })
-      .then(res => res.json())
+      .then(res => {
+        if (res.status === 400) {
+          return res.text().then(msg => {
+            throw { stock: true, message: msg };
+          });
+        }
+        if (!res.ok) {
+          throw { stock:false, message:"Checkout failed" };
+        }
+        return res.json();
+      })
       .then(order => {
         const txnId = order?.transactionId ?? "";
+
         showSuccessModal("modalContainer", {
           title: "Order Placed!",
           message: `Order ${txnId} has been placed successfully.`,
@@ -444,7 +474,20 @@ function buyNow(bookId) {
           secondaryHref: "catalog.html"
         });
       })
-      .catch(err => { console.error(err); alert("Error during checkout"); });
+      .catch(err => {
+        if (err.stock) {
+          const match = err.message.match(/Available:\s*(\d+)/i);
+          const available = match ? parseInt(match[1]) : null;
+          if (available === 0) {
+            showOutOfStockModal("modalContainer");
+          } else {
+            showCatalogStockErrorModal("modalContainer", err.message, bookId, available);
+          }
+          return;
+        }
+        console.error(err);
+        alert(err.message || "Error during checkout");
+      });
 }
 
 // Exposed for navbar.js admin "Add Book" button
@@ -529,6 +572,31 @@ function confirmDeleteBook(bookId) {
         closeModal();
         alert("Failed to delete book. Please try again.");
       });
+}
+
+function showCatalogStockErrorModal(modalContainerId, serverMessage, bookId, available) {
+  const stockLine = available !== null
+      ? `<p style="font-size:1.1rem;font-weight:700;color:var(--teal);margin:0.25rem 0 1rem">${available} remaining in stock</p>`
+      : `<p style="font-size:0.88rem;color:var(--muted);margin-bottom:1rem">${serverMessage}</p>`;
+
+  const container = document.getElementById(modalContainerId);
+  container.innerHTML = `
+    <div class="modal-overlay" onclick="closeModal()">
+      <div class="modal" style="text-align:center;max-width:380px">
+        <div style="display:flex;justify-content:center;margin-bottom:0.75rem;color:var(--error)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="40" height="40" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <h2 style="font-family:'DM Serif Display',serif;margin-bottom:0.25rem">Not Enough Stock</h2>
+        ${stockLine}
+        <div class="modal-action-row">
+          <button class="modal-btn-ghost" onclick="closeModal()">Browse Books</button>
+          <button class="modal-btn-teal" onclick="openCheckout(${bookId}, ${available ?? 1})">Adjust Quantity</button>
+        </div>
+      </div>
+    </div>`;
+  container.querySelector(".modal").addEventListener("click", e => e.stopPropagation());
 }
 
 function showCatalogToast(msg, type = "success") {
