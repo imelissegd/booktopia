@@ -86,6 +86,8 @@ function renderOrders(data) {
             CANCELLED: "status--cancelled",
         }[order.status] || "status--pending";
 
+        const orderTotal = order.items.reduce((sum, i) => sum + parseFloat(i.totalPrice), 0);
+
         const orderCard = document.createElement("div");
         orderCard.className = "order-card";
         orderCard.innerHTML = `
@@ -93,8 +95,9 @@ function renderOrders(data) {
         <div class="order-card-meta">
           <span class="order-id">Order ${order.transactionId}</span>
         </div>
-        <span class="order-date" style="margin-left:auto;font-size:0.78rem;color:var(--muted)">
-          Order Placed: ${new Date(order.orderDate).toLocaleDateString("en-PH", { year:"numeric", month:"long", day:"numeric" })}
+        <span style="margin-left:auto;display:flex;align-items:center;gap:1.25rem">
+          <span style="font-size:0.88rem;font-weight:600;color:var(--teal)">Total: ₱${orderTotal.toFixed(2)}</span>
+          <span class="order-date" style="font-size:0.78rem;color:var(--muted)">Order Placed: ${new Date(order.orderDate).toLocaleDateString("en-PH", { year:"numeric", month:"long", day:"numeric" })}</span>
         </span>
       </div>
       <div class="table-wrap">
