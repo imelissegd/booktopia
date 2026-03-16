@@ -1,7 +1,10 @@
 const container    = document.getElementById("orders");
 const userDropdown = document.getElementById("userDropdown");
 
-let username = null;
+let username     = null;
+let allOrders    = [];
+let currentPage  = 1;
+let itemsPerPage = 5;
 
 const currentUser = (() => {
     try { return JSON.parse(localStorage.getItem("currentUser")); }
@@ -43,7 +46,11 @@ function fetchOrders() {
             if (!res.ok) throw new Error("Failed to fetch orders");
             return res.json();
         })
-        .then(data => renderOrders(data))
+        .then(data => {
+            allOrders   = data;
+            currentPage = 1;
+            renderOrders();
+        })
         .catch(err => {
             console.error(err);
             showEmpty("Error loading order history. Please try again.");
@@ -51,22 +58,26 @@ function fetchOrders() {
 }
 
 // --- Render ---
-function renderOrders(data) {
-    if (!data.length) {
+function renderOrders() {
+    if (!allOrders.length) {
         showEmpty("No orders found.");
+        setupPagination();
         return;
     }
 
     container.innerHTML = "";
 
-    // --- Order count summary ---
-    const _totalItems = data.reduce((sum, o) => sum + o.items.reduce((s, i) => s + i.quantity, 0), 0);
+    const start      = (currentPage - 1) * itemsPerPage;
+    const end        = start + itemsPerPage;
+    const pageOrders = allOrders.slice(start, end);
+
+    const _totalItems  = allOrders.reduce((sum, o) => sum + o.items.reduce((s, i) => s + i.quantity, 0), 0);
     const _countBanner = document.createElement("p");
     _countBanner.style.cssText = "font-size:0.78rem;color:var(--muted);margin:0 0 0.75rem;padding:0.75rem 20px 0";
-    _countBanner.textContent = `${data.length} order${data.length !== 1 ? "s" : ""} • ${_totalItems} item${_totalItems !== 1 ? "s" : ""} total`;
+    _countBanner.textContent   = `${allOrders.length} order${allOrders.length !== 1 ? "s" : ""} • ${_totalItems} item${_totalItems !== 1 ? "s" : ""} total`;
     container.appendChild(_countBanner);
 
-    data.forEach(order => {
+    pageOrders.forEach(order => {
         const rows = order.items.map(item => `
       <tr>
         <td class="td-title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${item.bookTitle}</td>
@@ -126,6 +137,48 @@ function renderOrders(data) {
     `;
         container.appendChild(orderCard);
     });
+
+    setupPagination();
+}
+
+// --- Pagination ---
+function setupPagination() {
+    const pagination = document.getElementById("ordersPagination");
+    if (!pagination) return;
+    pagination.innerHTML = "";
+
+    if (!allOrders.length) return;
+
+    const totalPages = Math.ceil(allOrders.length / itemsPerPage);
+    if (totalPages <= 1) return;
+
+    const prevBtn = document.createElement("button");
+    prevBtn.textContent = "← Prev";
+    prevBtn.className   = "page-btn";
+    prevBtn.disabled    = currentPage === 1;
+    prevBtn.onclick     = () => { if (currentPage > 1) { currentPage--; renderOrders(); } };
+    pagination.appendChild(prevBtn);
+
+    for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement("button");
+        btn.textContent = i;
+        btn.className   = i === currentPage ? "page-btn active-page" : "page-btn";
+        btn.onclick     = () => { currentPage = i; renderOrders(); };
+        pagination.appendChild(btn);
+    }
+
+    const nextBtn = document.createElement("button");
+    nextBtn.textContent = "Next →";
+    nextBtn.className   = "page-btn";
+    nextBtn.disabled    = currentPage === totalPages;
+    nextBtn.onclick     = () => { if (currentPage < totalPages) { currentPage++; renderOrders(); } };
+    pagination.appendChild(nextBtn);
+}
+
+function changeItemsPerPage(val) {
+    itemsPerPage = parseInt(val);
+    currentPage  = 1;
+    renderOrders();
 }
 
 // --- View Book Modal ---

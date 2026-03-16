@@ -90,6 +90,61 @@
             .modal-book-layout { flex-direction: column; }
             .modal-book-cover img { width: 100%; max-width: 200px; }
         }
+
+        .category-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .category-wrap svg {
+            position: absolute;
+            right: 9px;
+            width: 13px;
+            height: 13px;
+            stroke: var(--muted);
+            fill: none;
+            pointer-events: none;
+        }
+        .category-select {
+            appearance: none;
+            padding: 0.62rem 2.2rem 0.62rem 0.9rem;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            color: var(--charcoal);
+            background: var(--offwhite);
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .category-select:focus { border-color: var(--teal); box-shadow: 0 0 0 3px var(--teal-glow); }
+
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+            padding: 1rem 0 0.25rem;
+            flex-wrap: wrap;
+        }
+        .page-btn {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 500;
+            padding: 0.45rem 0.85rem;
+            border-radius: 7px;
+            border: 1.5px solid var(--border);
+            background: var(--offwhite);
+            color: var(--charcoal);
+            cursor: pointer;
+            transition: border-color 0.18s, background 0.18s, color 0.18s;
+            min-width: 36px;
+        }
+        .page-btn:hover:not(:disabled) { border-color: var(--teal); color: var(--teal); }
+        .page-btn:disabled { opacity: 0.38; cursor: not-allowed; }
+        .page-btn.active-page { background: var(--teal); border-color: var(--teal); color: #fff; cursor: default; }
     </style>
 </head>
 <body class="page-body">
@@ -112,6 +167,15 @@
                 <svg class="select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
             </div>
         </div>
+        <div class="category-wrap">
+            <select class="category-select" onchange="changeItemsPerPage(this.value)">
+                <option value="5">5 per page</option>
+                <option value="10">10 per page</option>
+                <option value="25">25 per page</option>
+                <option value="50">50 per page</option>
+            </select>
+            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
     </div>
 
     <div id="orders" class="data-container">
@@ -120,6 +184,8 @@
             <p>Select a user to view their order history</p>
         </div>
     </div>
+
+    <div id="ordersPagination" class="pagination"></div>
 </main>
 
 <!-- Modal container for book detail view -->

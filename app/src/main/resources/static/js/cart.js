@@ -2,8 +2,10 @@ const container   = document.getElementById("cart");
 const checkoutBtn = document.getElementById("checkoutBtn");
 const userDropdown = document.getElementById("userDropdown");
 
-let cartItems = [];
-let username  = null;
+let cartItems    = [];
+let username     = null;
+let currentPage  = 1;
+let itemsPerPage = 5;
 
 const currentUser = (() => {
     try { return JSON.parse(localStorage.getItem("currentUser")); }
@@ -74,12 +76,17 @@ function renderCart() {
     if (!cartItems.length) {
         showEmpty("This cart is empty.");
         if (!isAdmin) checkoutBtn.style.display = "none";
+        setupPagination();
         return;
     }
 
     if (!isAdmin) checkoutBtn.style.display = "inline-flex";
 
-    const rows = cartItems.map(item => `
+    const start     = (currentPage - 1) * itemsPerPage;
+    const end       = start + itemsPerPage;
+    const pageItems = cartItems.slice(start, end);
+
+    const rows = pageItems.map(item => `
     <tr data-item-id="${item.cartItemId}">
       ${!isAdmin ? `
       <td class="td-check">
@@ -146,6 +153,48 @@ function renderCart() {
 
         document.querySelectorAll(".qty-input").forEach(lockQtyInput);
     }
+
+    setupPagination();
+}
+
+// --- Pagination ---
+function setupPagination() {
+    const pagination = document.getElementById("cartPagination");
+    if (!pagination) return;
+    pagination.innerHTML = "";
+
+    if (!cartItems.length) return;
+
+    const totalPages = Math.ceil(cartItems.length / itemsPerPage);
+    if (totalPages <= 1) return;
+
+    const prevBtn = document.createElement("button");
+    prevBtn.textContent = "← Prev";
+    prevBtn.className   = "page-btn";
+    prevBtn.disabled    = currentPage === 1;
+    prevBtn.onclick     = () => { if (currentPage > 1) { currentPage--; renderCart(); } };
+    pagination.appendChild(prevBtn);
+
+    for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement("button");
+        btn.textContent = i;
+        btn.className   = i === currentPage ? "page-btn active-page" : "page-btn";
+        btn.onclick     = () => { currentPage = i; renderCart(); };
+        pagination.appendChild(btn);
+    }
+
+    const nextBtn = document.createElement("button");
+    nextBtn.textContent = "Next →";
+    nextBtn.className   = "page-btn";
+    nextBtn.disabled    = currentPage === totalPages;
+    nextBtn.onclick     = () => { if (currentPage < totalPages) { currentPage++; renderCart(); } };
+    pagination.appendChild(nextBtn);
+}
+
+function changeItemsPerPage(val) {
+    itemsPerPage = parseInt(val);
+    currentPage  = 1;
+    renderCart();
 }
 
 // --- Quantity editing ---
